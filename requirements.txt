@@ -1,0 +1,14 @@
+playwright==1.47.0
+pytest==8.3.3
+pytest-playwright==0.5.2
+pytest-xdist==3.6.1
+pytest-html==4.1.1
+python-dotenv==1.0.1
+requests==2.32.3
+Faker==30.3.0
+
+# MCP testing server (mcp_server/)
+mcp>=1.26
+pillow>=10.0
+jsonschema>=4.20
+pytest-rerunfailures>=14.0   # run_tests(reruns=N)

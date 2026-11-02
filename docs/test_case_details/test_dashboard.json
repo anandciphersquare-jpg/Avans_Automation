@@ -1,0 +1,74 @@
+{
+  "WDSH-001": {
+    "sub_module": "Dashboard – page load",
+    "scenario": "Verify that the Dashboard opens for the signed-in admin",
+    "test_type": "Smoke",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in to the console. Note: the Dashboard is still under development, so a failure here is pending development, not a defect.",
+    "steps": [
+      "Click Dashboard in the left menu.",
+      "Wait for the page to finish loading.",
+      "Check the page address and the Dashboard menu item."
+    ],
+    "test_data": "N/A",
+    "expected": "The Dashboard page opens (address contains 'dashboard') or the Dashboard menu item is shown as active and clickable."
+  },
+  "WDSH-002": {
+    "sub_module": "Dashboard – side menu",
+    "scenario": "Verify that every live module in the left menu is enabled and clickable",
+    "test_type": "Functional",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in and on the Dashboard. Dashboard is still under development.",
+    "steps": [
+      "Wait for the left menu to appear (up to 15 seconds).",
+      "For each live menu item, check that it is visible and not dimmed or disabled."
+    ],
+    "test_data": "Live items: Dashboard, Beneficiary List, Transfers, Audit Trail, User Management, Change password, Sign out",
+    "expected": "Each live menu item is visible and enabled."
+  },
+  "WDSH-003": {
+    "sub_module": "Dashboard – side menu",
+    "scenario": "Check that modules not yet released are dimmed and cannot be clicked",
+    "test_type": "Security",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin is signed in and on the Dashboard. Dashboard is still under development.",
+    "steps": [
+      "Look at each not-yet-released item in the left menu.",
+      "Check whether it is visible and enabled."
+    ],
+    "test_data": "Not-live items: Create Transfer, Approvals, Master Escrow, Escrow Transfer, Escrow Deposit, Virtual ID, Deposits, QR Settlements",
+    "expected": "Each of these items is hidden or shown as disabled (cannot be clicked)."
+  },
+  "WDSH-004": {
+    "sub_module": "Dashboard – access control",
+    "scenario": "Check that typing the web address of a not-yet-released module does not open it",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Dashboard is still under development.",
+    "steps": [
+      "In the browser address bar, enter the console address followed by the module path.",
+      "Wait about one second.",
+      "Check the page text and the final address."
+    ],
+    "test_data": "Paths: /create-transfer, /approvals, /master-escrow, /virtual-id, /deposits, /qr-settlements",
+    "expected": "The module does not open: the page shows a message such as 'not found', 'forbidden', 'no access', 'access denied' or 'cannot open', or the user is redirected to another page."
+  },
+  "WDSH-005": {
+    "sub_module": "Dashboard – amount format",
+    "scenario": "Verify that money amounts on the Dashboard are shown in Indian Rupees",
+    "test_type": "UI/UX",
+    "priority": "Low",
+    "severity": "Minor",
+    "preconditions": "Admin is signed in. Amounts must be visible on the Dashboard (otherwise the test is skipped). Dashboard is still under development.",
+    "steps": [
+      "Click Dashboard in the left menu and wait for it to load.",
+      "Look at the amounts shown on the page."
+    ],
+    "test_data": "N/A",
+    "expected": "Amounts are shown with the ₹ symbol or 'INR'."
+  }
+}

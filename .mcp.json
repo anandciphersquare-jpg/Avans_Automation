@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "excrow-testing": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["mcp_server/server.py"]
+    }
+  }
+}

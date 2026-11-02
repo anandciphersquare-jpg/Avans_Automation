@@ -1,0 +1,48 @@
+{
+  "WSEC-001": {
+    "sub_module": "Web security – modules not live",
+    "scenario": "Verify that typing the address of a module that is not live does not open it",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The web app is reachable over the browser and the admin is signed in (email, password and OTP) and on the dashboard.",
+    "steps": [
+      "Type the module address directly in the browser address bar, for example <app URL>/create-transfer.",
+      "Wait about one second for the page to settle.",
+      "Check what the page shows and where the browser ends up.",
+      "Repeat for each address in the test data."
+    ],
+    "test_data": "Addresses: /create-transfer (Create Transfer), /approvals (Approvals), /master-escrow (Master Escrow), /virtual-id (Virtual ID), /deposits (Deposits), /qr-settlements (QR Settlements)",
+    "expected": "For each address the module does not open: the page shows a blocking message (such as \"cannot open\", \"not found\", \"forbidden\", \"no access\", \"unauthorized\" or \"access denied\"), or the browser is redirected away from that address."
+  },
+  "WSEC-006": {
+    "sub_module": "Web security – client-side data",
+    "scenario": "Verify that no passwords, OTPs or full account numbers are kept in browser storage or printed to the browser console",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The web app is reachable over the browser and the admin is signed in (email, password and OTP) and on the dashboard. Browser developer tools are open.",
+    "steps": [
+      "Open the browser developer tools and look at everything in Local Storage and Session Storage for the app.",
+      "Search the stored values for password, otp, cvv, \"pin\" and for any run of 9 to 18 digits (a full account number).",
+      "Open the Console tab and keep it open.",
+      "Go to the Beneficiary List page (<app URL>/beneficiaries) and wait about one second.",
+      "Read all console messages and search them for password and otp."
+    ],
+    "test_data": "N/A",
+    "expected": "Web storage contains no \"password\", \"otp\", \"cvv\" or \"pin\" values and no unmasked 9-18 digit account number. The console shows no message containing \"password\" or \"otp\"."
+  },
+  "WSEC-009": {
+    "sub_module": "Web security – transport",
+    "scenario": "Verify that the application is served over HTTPS",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The web app is reachable over the browser and the admin is signed in (email, password and OTP) and on the dashboard.",
+    "steps": [
+      "Look at the address of the signed-in dashboard page in the browser address bar."
+    ],
+    "test_data": "N/A",
+    "expected": "The address starts with https://."
+  }
+}

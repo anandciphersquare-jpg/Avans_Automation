@@ -1,0 +1,596 @@
+{
+  "AUTH-API-001": {
+    "sub_module": "Login API – input validation",
+    "scenario": "Check that the login API refuses a request with an empty body",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with an empty JSON body {}.",
+      "Read the response status, error code and field errors."
+    ],
+    "test_data": "Body: {}",
+    "expected": "The API answers 400 with code VALIDATION_ERROR and field errors for both email and password."
+  },
+  "AUTH-API-002": {
+    "sub_module": "Login API – input validation",
+    "scenario": "Check that the login API refuses a request when email or password is missing",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with a password and location but no email.",
+      "Read the response status, error code and field errors.",
+      "Repeat with an email and location but no password."
+    ],
+    "test_data": "Variant 1 (no email): {\"password\": \"Wrong@Pass1\", \"clientGeo\": {\"latitude\": <configured latitude>, \"longitude\": <configured longitude>, \"timezone\": \"Asia/Calcutta\"}}. Variant 2 (no password): {\"email\": \"qa.nobody.7x@example.com\", \"clientGeo\": {\"latitude\": <configured latitude>, \"longitude\": <configured longitude>, \"timezone\": \"Asia/Calcutta\"}}",
+    "expected": "Each request gets 400 with code VALIDATION_ERROR and a field error naming the missing field (email or password)."
+  },
+  "AUTH-API-003": {
+    "sub_module": "Login API – input validation",
+    "scenario": "Check that the login API refuses email addresses in an invalid format",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with a badly formatted email, a password and a valid location.",
+      "Read the response status, error code and field errors.",
+      "Repeat for each email in the test data."
+    ],
+    "test_data": "Email values: \"abc\", \"abc@\", \"a b@x.com\", \"@x.com\"; password \"Wrong@Pass1\"; valid clientGeo.",
+    "expected": "Each request gets 400 with code VALIDATION_ERROR and a field error for email."
+  },
+  "AUTH-API-004": {
+    "sub_module": "Login API – input validation",
+    "scenario": "Check that the login API refuses a sign-in that has no location (clientGeo)",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with an email and password but without the clientGeo block.",
+      "Read the response status, error code and message."
+    ],
+    "test_data": "Body: {\"email\": \"qa.nobody.7x@example.com\", \"password\": \"Wrong@Pass1\"} (no clientGeo)",
+    "expected": "The API answers 400 with code VALIDATION_ERROR and a message containing \"Location access is required\"."
+  },
+  "AUTH-API-005": {
+    "sub_module": "Login API – credentials",
+    "scenario": "Check that the login API refuses an email that has no account",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with an unknown email, any password and a valid location.",
+      "Read the response status, error code and message."
+    ],
+    "test_data": "Body: {\"email\": \"qa.nobody.7x@example.com\", \"password\": \"Wrong@Pass1\", \"clientGeo\": {\"latitude\": <configured latitude>, \"longitude\": <configured longitude>, \"timezone\": \"Asia/Calcutta\"}}",
+    "expected": "The API answers 401 with code UNAUTHORIZED and the message \"Invalid email or password.\""
+  },
+  "AUTH-API-006": {
+    "sub_module": "Login API – account enumeration",
+    "scenario": "Verify that a wrong password for a real account gets exactly the same answer as an unknown email",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. No sign-in token is needed. The admin email and password are configured for the test run. Only one wrong-password attempt is made on the real account per run.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with the real admin email, a wrong password and a valid location.",
+      "Note the response status, error code and message.",
+      "Send the same request with an unknown email (qa.nobody.7x@example.com).",
+      "Compare the two responses."
+    ],
+    "test_data": "Request 1: real admin email + password \"Wrong@Pass1\". Request 2: \"qa.nobody.7x@example.com\" + \"Wrong@Pass1\". Both with valid clientGeo.",
+    "expected": "Both responses have the same status, error code and message, and the wrong-password response is 401. An attacker cannot tell which emails have accounts."
+  },
+  "AUTH-API-007": {
+    "sub_module": "Login API – input validation",
+    "scenario": "Check that the login API handles a broken JSON body cleanly",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with Content-Type application/json and a cut-off JSON body.",
+      "Read the response status and error code."
+    ],
+    "test_data": "Raw body: {\"email\": \"a@b.com\",   (incomplete JSON)",
+    "expected": "The API answers 400 with code MALFORMED_REQUEST, not a 500 server error."
+  },
+  "AUTH-API-008": {
+    "sub_module": "Login API – location validation",
+    "scenario": "Check that the login API refuses impossible location values",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with an unknown email, a password and an invalid clientGeo block.",
+      "Read the response status.",
+      "Repeat for each location variant in the test data."
+    ],
+    "test_data": "clientGeo variants: {\"latitude\": 999, \"longitude\": 77.2}; {\"latitude\": \"north\", \"longitude\": \"east\"}; {\"latitude\": null, \"longitude\": null}",
+    "expected": "Each request is refused with a 4xx status - never a success (2xx) and never a server error (5xx)."
+  },
+  "AUTH-API-009": {
+    "sub_module": "Login API – SQL injection",
+    "scenario": "Verify that SQL injection text in the email and password never signs in or causes a database error",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with the same SQL injection text as both email and password, plus a valid location.",
+      "Read the response status and body.",
+      "Repeat for each payload in the test data."
+    ],
+    "test_data": "Payloads (used as both email and password): ' OR '1'='1 | admin'-- | \" OR \"\"=\" | ') OR ('1'='1 | 1 OR 1=1",
+    "expected": "Each request answers 400, 401 or 403 (a firewall block is fine). No request signs in (2xx) or causes a server error (5xx), and the body contains no \"sql\" or \"syntax\" error text."
+  },
+  "AUTH-API-010": {
+    "sub_module": "Login API – boundary",
+    "scenario": "Check that the login API refuses a very long (10,000-character) email or password cleanly",
+    "test_type": "Boundary",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with a 10,000-character email (plus @example.com), a normal password and a valid location.",
+      "Read the response status.",
+      "Send another request with the normal unknown email and a password of about 10,000 characters."
+    ],
+    "test_data": "Variant 1: email = 10,000 x \"a\" + \"@example.com\". Variant 2: email \"qa.nobody.7x@example.com\", password = \"A@1\" + 10,000 x \"a\".",
+    "expected": "Both requests are refused with a 4xx status (for example 400, 401 or 413), never a 2xx or 5xx."
+  },
+  "AUTH-API-011": {
+    "sub_module": "Login API – input validation",
+    "scenario": "Check that the login API refuses a form-encoded body cleanly",
+    "test_type": "Negative",
+    "priority": "Low",
+    "severity": "Minor",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with Content-Type application/x-www-form-urlencoded and a form body.",
+      "Read the response status."
+    ],
+    "test_data": "Body: email=qa.nobody.7x@example.com&password=x (form encoded)",
+    "expected": "The API refuses the request with a 4xx status (for example 400 or 415), not a 500 server error."
+  },
+  "AUTH-API-012": {
+    "sub_module": "Login API – HTTP methods",
+    "scenario": "Check that the login endpoint accepts only POST and refuses other HTTP methods",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a GET request to /api/v1/auth/login without a token.",
+      "Read the response status.",
+      "Repeat with PUT and DELETE."
+    ],
+    "test_data": "Methods: GET, PUT, DELETE (no body, no token)",
+    "expected": "Each method is refused with 405, 401, 403 or 404 (401 is accepted because the auth check runs first). None returns a 2xx success."
+  },
+  "AUTH-API-013": {
+    "sub_module": "Login API – two-step sign-in",
+    "scenario": "Verify that the correct password alone gives no session token and asks for an OTP",
+    "test_type": "Positive",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. No sign-in token is needed. The admin email and password are configured for the test run. Note: this sends one OTP email to the admin mailbox.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with the real admin email, the correct password and a valid location.",
+      "Check the response status.",
+      "Check the response data for otpRequired, a challenge reference and the OTP destination.",
+      "Check that the response contains no access token."
+    ],
+    "test_data": "Body: {\"email\": \"<admin email>\", \"password\": \"<valid password>\", clientGeo: <valid location>}",
+    "expected": "The API answers 200 with otpRequired = true, a challengeReference, and a masked OTP destination (with dot characters, not the full email). No accessToken is returned."
+  },
+  "AUTH-API-020": {
+    "sub_module": "OTP API – input validation",
+    "scenario": "Check that the verify-OTP API refuses an empty request and names the missing fields",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/verify-otp with an empty JSON body {}.",
+      "Read the response status, error code and field errors."
+    ],
+    "test_data": "Body: {}",
+    "expected": "The API answers 400 with code VALIDATION_ERROR and field errors for challengeReference and code."
+  },
+  "AUTH-API-021": {
+    "sub_module": "OTP API – challenge handling",
+    "scenario": "Check that verifying a code for an unknown or expired challenge tells the user to sign in again",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/verify-otp with a made-up challenge reference and a code.",
+      "Read the response status, error code and message."
+    ],
+    "test_data": "Body: {\"challengeReference\": \"01ZZZZZZZZZZZZZZZZZZZZZZZZ\", \"code\": \"000000\"}",
+    "expected": "The API answers 401 with code OTP_RESTART_REQUIRED and the message \"This code can no longer be used. Sign in again to get a new one.\""
+  },
+  "AUTH-API-022": {
+    "sub_module": "OTP API – code format",
+    "scenario": "Check that the verify-OTP API refuses codes that are not exactly 6 digits",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/verify-otp with a made-up challenge reference and a badly formatted code.",
+      "Read the response status.",
+      "Repeat for each code in the test data."
+    ],
+    "test_data": "challengeReference \"01ZZZZZZZZZZZZZZZZZZZZZZZZ\"; codes: \"12345\" (5 digits), \"1234567\" (7 digits), \"abcdef\" (letters), \"12 456\" (space), \"\" (empty)",
+    "expected": "Each request is refused with 400 or 401 - never a success (2xx) or server error (5xx)."
+  },
+  "AUTH-API-023": {
+    "sub_module": "OTP API – resend",
+    "scenario": "Check that resending an OTP for an unknown challenge tells the user to sign in again",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/resend-otp with a made-up challenge reference.",
+      "Read the response status and error code."
+    ],
+    "test_data": "Body: {\"challengeReference\": \"01ZZZZZZZZZZZZZZZZZZZZZZZZ\"}",
+    "expected": "The API answers 401 with code OTP_RESTART_REQUIRED."
+  },
+  "AUTH-API-024": {
+    "sub_module": "OTP API – brute-force protection",
+    "scenario": "Verify that repeated wrong OTP codes on one sign-in attempt are stopped within 6 tries",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. No sign-in token is needed. The admin email and password are configured for the test run. Opt-in test: runs only when RUN_LOCKOUT_TESTS=1 is set, because it can lock the account or throttle this machine's IP. Run it on its own at the end of a session. Sends one OTP email to the admin.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with the real admin email and correct password to get a challenge reference.",
+      "Send a POST request to /api/v1/auth/verify-otp with that challenge reference and a wrong code.",
+      "Read the response status and error code.",
+      "Keep sending wrong codes (up to 6 in total), stopping when the API blocks further tries."
+    ],
+    "test_data": "Wrong codes in order: 000000, 111111, 222222, 333333, 444444, 555555",
+    "expected": "Within 6 wrong codes the API stops accepting guesses - it answers 429 (too many requests) or code OTP_RESTART_REQUIRED."
+  },
+  "AUTH-API-030": {
+    "sub_module": "Session API – current user",
+    "scenario": "Verify that /auth/me with a valid token returns the signed-in user and no secrets",
+    "test_type": "Positive",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session).",
+    "steps": [
+      "Send a GET request to /api/v1/auth/me with the header Authorization: Bearer <valid token>.",
+      "Check the response status.",
+      "Check the response body for the user's email and for any password, OTP or secret fields."
+    ],
+    "test_data": "Header: Authorization: Bearer <valid admin token>",
+    "expected": "The API answers 200, the body contains the admin's email, and there is no \"password\", \"otp\" or \"secret\" field."
+  },
+  "AUTH-API-031": {
+    "sub_module": "Session API – access control",
+    "scenario": "Verify that session and data endpoints refuse calls without a sign-in token",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a GET request to /api/v1/auth/me without any Authorization header.",
+      "Read the response status and error code.",
+      "Repeat for each endpoint in the test data."
+    ],
+    "test_data": "GET /api/v1/auth/me; POST /api/v1/auth/logout (body {}); POST /api/v1/auth/change-password (body {}); GET /api/v1/navigation; GET /api/v1/beneficiaries",
+    "expected": "Every call answers 401 with code UNAUTHORIZED."
+  },
+  "AUTH-API-032": {
+    "sub_module": "Session API – token validation",
+    "scenario": "Verify that /auth/me refuses garbage, empty or wrong-type Authorization headers",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a GET request to /api/v1/auth/me with an invalid Authorization header.",
+      "Read the response status.",
+      "Repeat for each header value in the test data."
+    ],
+    "test_data": "Authorization values: \"Bearer abc.def.ghi\" (garbage), \"Bearer \" (empty), \"Basic YWRtaW46YWRtaW4=\" (Basic admin:admin), \"Token x\" (wrong scheme)",
+    "expected": "Every request answers 401."
+  },
+  "AUTH-API-033": {
+    "sub_module": "Session API – token tampering",
+    "scenario": "Verify that a real token with one changed signature character is refused",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session).",
+    "steps": [
+      "Take a valid admin token and change the first character of its signature part (the third section).",
+      "Send a GET request to /api/v1/auth/me with Authorization: Bearer <forged token>.",
+      "Read the response status."
+    ],
+    "test_data": "Valid admin token with the first signature character replaced (A, or B if it was already A).",
+    "expected": "The API answers 401 - the server checks the token signature."
+  },
+  "AUTH-API-034": {
+    "sub_module": "Session API – token tampering",
+    "scenario": "Verify that an unsigned (alg=none) copy of a real token is refused",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session).",
+    "steps": [
+      "Build a token with header {\"alg\":\"none\",\"typ\":\"JWT\"}, the real token's payload, and an empty signature.",
+      "Send a GET request to /api/v1/auth/me with Authorization: Bearer <unsigned token>.",
+      "Read the response status."
+    ],
+    "test_data": "Header {\"alg\":\"none\",\"typ\":\"JWT\"} + payload of the valid admin token + empty signature.",
+    "expected": "The API answers 401 - unsigned tokens are never accepted."
+  },
+  "AUTH-API-035": {
+    "sub_module": "Session API – token tampering",
+    "scenario": "Verify that changing a token's contents (a much later expiry) makes it invalid",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session).",
+    "steps": [
+      "Decode the payload of a valid admin token.",
+      "Change the expiry (exp) to about 10 years from now and re-encode the payload, keeping the original header and signature.",
+      "Send a GET request to /api/v1/auth/me with Authorization: Bearer <modified token>.",
+      "Read the response status."
+    ],
+    "test_data": "Valid admin token with exp set to now + 10 years.",
+    "expected": "The API answers 401 - a token whose contents were changed is refused."
+  },
+  "AUTH-API-036": {
+    "sub_module": "Session API – token contents",
+    "scenario": "Verify that the sign-in token is signed, expires within an hour and carries no password or OTP",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "A valid admin sign-in token is available (taken from a signed-in browser session). No API call is made.",
+    "steps": [
+      "Decode the header and payload of the admin token (for example on jwt.io).",
+      "Check the signing algorithm in the header.",
+      "Check the issued-at (iat) and expiry (exp) times and work out the token lifetime.",
+      "Check the payload for any password, passwd, OTP, code, secret or PIN value."
+    ],
+    "test_data": "The current admin sign-in token.",
+    "expected": "The algorithm is a real signing algorithm (not empty or \"none\"), the token has an expiry, its lifetime is more than 0 and at most 60 minutes, and no claim carries a password, OTP, code, secret or PIN as text."
+  },
+  "AUTH-API-037": {
+    "sub_module": "Session API – logout",
+    "scenario": "Verify that after logout the same token is refused everywhere",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API and web app are reachable. The admin email and password are configured for the test run. A fresh, separate sign-in is used so the shared session is not affected.",
+    "steps": [
+      "Sign in to the web app as admin (email, password and OTP) and copy the access token from the browser session.",
+      "Send a GET request to /api/v1/auth/me with that token and confirm it works.",
+      "Send a POST request to /api/v1/auth/logout with the same token.",
+      "Send a GET request to /api/v1/auth/me with the same token again.",
+      "Send a GET request to /api/v1/beneficiaries with the same token."
+    ],
+    "test_data": "Header: Authorization: Bearer <fresh admin token>",
+    "expected": "/auth/me answers 200 before logout; logout answers 200 or 204; afterwards both /auth/me and /beneficiaries answer 401 with that token."
+  },
+  "AUTH-API-040": {
+    "sub_module": "Change Password API – input validation",
+    "scenario": "Check that change-password with an empty body names every missing field",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session).",
+    "steps": [
+      "Send a POST request to /api/v1/auth/change-password with a valid token and an empty JSON body {}.",
+      "Read the response status, error code and field errors."
+    ],
+    "test_data": "Body: {}",
+    "expected": "The API answers 400 with code VALIDATION_ERROR and field errors for currentPassword, newPassword and confirmPassword. Nothing is changed."
+  },
+  "AUTH-API-041": {
+    "sub_module": "Change Password API – password rules",
+    "scenario": "Check that a weak new password is refused and the session stays valid",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session). A wrong current password is sent on purpose so the real password can never be changed by this test.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/change-password with a valid token, a wrong current password and a weak new password (same value in confirm).",
+      "Read the response status.",
+      "Send a GET request to /api/v1/auth/me with the same token.",
+      "Repeat for each weak password in the test data."
+    ],
+    "test_data": "currentPassword \"Wrong@Cur1\"; new/confirm values: \"abc\" (3 chars), \"abcdefgh\" (no capital, digit or symbol), \"ABCD@1234\" (no lowercase), \"Abcd@12345678\" (13 chars)",
+    "expected": "Each change request is refused with 400 or 422, and /auth/me still answers 200 (the session is still valid)."
+  },
+  "AUTH-API-042": {
+    "sub_module": "Change Password API – confirm match",
+    "scenario": "Check that the server refuses a change when the new password and confirm password do not match",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session).",
+    "steps": [
+      "Send a POST request to /api/v1/auth/change-password with a valid token and different values for newPassword and confirmPassword.",
+      "Read the response status."
+    ],
+    "test_data": "Body: {\"currentPassword\": \"Wrong@Cur1\", \"newPassword\": \"Qa@New1234\", \"confirmPassword\": \"Qa@New9999\"}",
+    "expected": "The API refuses the request with 400 or 422."
+  },
+  "AUTH-API-043": {
+    "sub_module": "Change Password API – current password",
+    "scenario": "Check that a wrong current password is refused and the session stays valid",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session).",
+    "steps": [
+      "Send a POST request to /api/v1/auth/change-password with a valid token, a wrong current password and a strong, matching new password.",
+      "Read the response status.",
+      "Send a GET request to /api/v1/auth/me with the same token."
+    ],
+    "test_data": "Body: {\"currentPassword\": \"Wrong@Cur1\", \"newPassword\": \"Qa@New1234\", \"confirmPassword\": \"Qa@New1234\"}",
+    "expected": "The change is refused with 400, 401, 403 or 422 (the password is not changed), and /auth/me still answers 200."
+  },
+  "AUTH-API-050": {
+    "sub_module": "Forgot Password API – account enumeration",
+    "scenario": "Verify that forgot-password for an unknown email returns the generic success message",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/forgot-password with an email that has no account.",
+      "Read the response status and message."
+    ],
+    "test_data": "Body: {\"email\": \"qa.nobody.7x@example.com\"}",
+    "expected": "The API answers 200 with a message containing \"If an account exists\" - it does not reveal that the account is missing."
+  },
+  "AUTH-API-051": {
+    "sub_module": "Forgot Password API – account enumeration",
+    "scenario": "Verify that forgot-password gives the same answer for a real account and an unknown email",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. No sign-in token is needed. The admin email and password are configured for the test run. Note: this sends one reset email to the admin (the password is not changed).",
+    "steps": [
+      "Send a POST request to /api/v1/auth/forgot-password with the real admin email.",
+      "Note the response status and message.",
+      "Send the same request with an unknown email.",
+      "Compare the two responses."
+    ],
+    "test_data": "Request 1: {\"email\": \"<admin email>\"}. Request 2: {\"email\": \"qa.nobody.7x@example.com\"}",
+    "expected": "Both responses have the same status and message, so nobody can find out which emails have accounts."
+  },
+  "AUTH-API-052": {
+    "sub_module": "Forgot Password API – input validation",
+    "scenario": "Check that forgot-password refuses an empty or badly formatted email",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/forgot-password with an invalid email.",
+      "Read the response status, error code and field errors.",
+      "Repeat for each email in the test data."
+    ],
+    "test_data": "Email values: \"\" (empty), \"abc\" (no @), \"abc@\" (no domain)",
+    "expected": "Each request answers 400 with code VALIDATION_ERROR and a field error for email."
+  },
+  "AUTH-API-053": {
+    "sub_module": "Reset Password API – link check",
+    "scenario": "Verify that a made-up reset token is reported as not usable",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/reset-password/verify with a made-up token.",
+      "Read the response status, and if it is 200, read the 'valid' value in the response data.",
+      "Repeat for each token in the test data."
+    ],
+    "test_data": "Token values: \"bogus\", 64 zeros (\"000...0\"), \"' OR '1'='1\"",
+    "expected": "Each request answers 200, 400, 403, 404 or 410. If it answers 200, the data shows valid = false. No made-up token is accepted as valid."
+  },
+  "AUTH-API-054": {
+    "sub_module": "Reset Password API – reset",
+    "scenario": "Verify that a password reset with a made-up token never succeeds",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/reset-password with a made-up token and a new password.",
+      "Read the response status."
+    ],
+    "test_data": "Body: {\"token\": \"bogus\", \"newPassword\": \"Qa@New1234\", \"confirmPassword\": \"Qa@New1234\"}",
+    "expected": "The reset is refused with a 4xx status - not 200/204 (success) and not a 5xx server error."
+  },
+  "AUTH-API-055": {
+    "sub_module": "Auth API – security headers",
+    "scenario": "Verify that login responses carry the required security headers and are not cached",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with an unknown email, a password and a valid location.",
+      "Look at the response headers."
+    ],
+    "test_data": "Body: {\"email\": \"qa.nobody.7x@example.com\", \"password\": \"Wrong@Pass1\", clientGeo: <valid location>}",
+    "expected": "The response has Strict-Transport-Security, X-Content-Type-Options: nosniff, X-Frame-Options or Content-Security-Policy, Referrer-Policy, and Cache-Control containing no-store."
+  },
+  "AUTH-API-056": {
+    "sub_module": "Auth API – CORS",
+    "scenario": "Verify that the login API does not allow a foreign website to call it from a browser",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send an OPTIONS (pre-flight) request to /api/v1/auth/login with Origin https://evil.example.com, Access-Control-Request-Method POST and Access-Control-Request-Headers content-type.",
+      "Read the Access-Control-Allow-Origin response header."
+    ],
+    "test_data": "Origin: https://evil.example.com",
+    "expected": "Access-Control-Allow-Origin is neither \"*\" nor \"https://evil.example.com\" - the foreign site is not allowed."
+  },
+  "AUTH-API-057": {
+    "sub_module": "Auth API – error tracing",
+    "scenario": "Check that an authentication error carries a request ID for support tracing",
+    "test_type": "Functional",
+    "priority": "Low",
+    "severity": "Minor",
+    "preconditions": "The API is reachable. No sign-in token is needed.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with an unknown email, a password and a valid location.",
+      "Look for a request ID in the response body (requestId) or headers (X-Request-ID)."
+    ],
+    "test_data": "Body: {\"email\": \"qa.nobody.7x@example.com\", \"password\": \"Wrong@Pass1\", clientGeo: <valid location>}",
+    "expected": "The error response includes a request ID (requestId in the body or an X-Request-ID header)."
+  },
+  "AUTH-API-060": {
+    "sub_module": "Login API – brute-force protection",
+    "scenario": "Verify that repeated failed logins are throttled within 25 attempts",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. No sign-in token is needed. Opt-in test: runs only when RUN_LOCKOUT_TESTS=1 is set, because it can lock the account or throttle this machine's IP. Run it on its own at the end of a session.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/login with an unknown email, a wrong password and a valid location.",
+      "Read the response status.",
+      "Repeat the same request up to 25 times, stopping as soon as a 429 is returned."
+    ],
+    "test_data": "Email \"qa.bruteforce@example.com\", password \"Wrong@Pass1\", up to 25 attempts.",
+    "expected": "The API starts answering 429 (Too Many Requests) within 25 failed attempts."
+  },
+  "AUTH-API-061": {
+    "sub_module": "Forgot Password API – flood protection",
+    "scenario": "Verify that repeated password-reset requests are throttled within 15 attempts",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "The API is reachable. No sign-in token is needed. Opt-in test: runs only when RUN_LOCKOUT_TESTS=1 is set, because it can lock the account or throttle this machine's IP. Run it on its own at the end of a session.",
+    "steps": [
+      "Send a POST request to /api/v1/auth/forgot-password with a test email.",
+      "Read the response status.",
+      "Repeat the same request up to 15 times, stopping as soon as a 429 is returned."
+    ],
+    "test_data": "Body: {\"email\": \"qa.flood@example.com\"}, up to 15 requests.",
+    "expected": "The API starts answering 429 (Too Many Requests) within 15 requests, so the endpoint cannot be used to spam a mailbox."
+  }
+}

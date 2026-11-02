@@ -1,0 +1,469 @@
+{
+  "AUTH-UI-001": {
+    "sub_module": "Sign-in page – layout",
+    "scenario": "Check that the sign-in page shows the heading, Email and Password fields, the Forgot password? link and the Sign in button",
+    "test_type": "Smoke",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "User is signed out.",
+    "steps": [
+      "Open the sign-in page.",
+      "Check that the heading 'Sign in' and the text 'Enter your credentials to access the console.' are shown.",
+      "Check that the 'Forgot password?' link is shown.",
+      "Check that the Email field is an email field and the Password field hides what is typed.",
+      "Check that the browser can offer saved username and password for these fields."
+    ],
+    "test_data": "N/A",
+    "expected": "All texts and the link are present, Email is an email-type field, Password is masked, and the fields are marked for username / current password autofill."
+  },
+  "AUTH-UI-002": {
+    "sub_module": "Sign-in page – credentials in URL",
+    "scenario": "Verify that submitting the sign-in form never puts the email or password into the page address",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "User is on the sign-in page. Location access is allowed in the browser.",
+    "steps": [
+      "Open the sign-in page.",
+      "Type an unknown email and a password.",
+      "Click Sign in and wait for the response message.",
+      "Look at the address bar."
+    ],
+    "test_data": "Email: qa.nobody.7x@example.com / Password: Wrong@1234",
+    "expected": "The address bar does not contain the password or a 'password=' parameter."
+  },
+  "AUTH-UI-010": {
+    "sub_module": "Sign-in page – mandatory fields",
+    "scenario": "Check that Email and Password must both be filled before signing in",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "User is on the sign-in page. Location access is allowed in the browser.",
+    "steps": [
+      "Open the sign-in page.",
+      "Fill the Email and Password fields as per the data set (leave one or both empty).",
+      "Click Sign in.",
+      "Read the messages under Email and Password."
+    ],
+    "test_data": "Variants: both empty; email 'qa.user@example.com' with password empty; email empty with password 'Secret@123'; email of spaces only with password 'Secret@123'",
+    "expected": "An empty Email shows 'Enter your email' (spaces only shows an email error); an empty Password shows 'Enter your password'; a filled field shows no message; and no sign-in request is sent."
+  },
+  "AUTH-UI-011": {
+    "sub_module": "Sign-in page – email format",
+    "scenario": "Check that a badly formatted email shows the format message and is not sent",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "User is on the sign-in page. Location access is allowed in the browser.",
+    "steps": [
+      "Open the sign-in page.",
+      "Type the invalid email and the password 'Secret@123'.",
+      "Click Sign in.",
+      "Read the message under Email."
+    ],
+    "test_data": "Variants: 'abc'; 'abc@'; 'abc@x'; 'a b@x.com'; '@x.com'; 'abc@@x.com' (password: Secret@123)",
+    "expected": "'That does not look like an email address' is shown under Email and no sign-in request is sent."
+  },
+  "AUTH-UI-020": {
+    "sub_module": "Sign-in page – wrong password",
+    "scenario": "Check that a wrong password shows an error and does not sign the user in",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "A valid admin account exists. User is on the sign-in page with location allowed. Only one wrong attempt is made per run so the account is not locked.",
+    "steps": [
+      "Open the sign-in page.",
+      "Type the admin email and a wrong password.",
+      "Click Sign in.",
+      "Read the message under the form."
+    ],
+    "test_data": "Email: admin account email / Password: Wrong@Pass1",
+    "expected": "'Invalid email or password.' is shown, the code (OTP) step does not open and the user stays on the sign-in page."
+  },
+  "AUTH-UI-021": {
+    "sub_module": "Sign-in page – unknown email",
+    "scenario": "Verify that an unknown email gets the same message as a wrong password so accounts cannot be discovered",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "User is on the sign-in page. Location access is allowed in the browser.",
+    "steps": [
+      "Open the sign-in page.",
+      "Type an email that has no account and any password.",
+      "Click Sign in.",
+      "Read the message under the form."
+    ],
+    "test_data": "Email: qa.nobody.7x@example.com / Password: Wrong@Pass1",
+    "expected": "The message is exactly 'Invalid email or password.' (no 'user not found' style message)."
+  },
+  "AUTH-UI-022": {
+    "sub_module": "Sign-in page – SQL injection",
+    "scenario": "Verify that SQL code typed in Email and Password never signs in and never shows a database error",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "User is on the sign-in page. Location access is allowed in the browser.",
+    "steps": [
+      "Open the sign-in page.",
+      "Type the SQL text in both Email and Password.",
+      "Click Sign in.",
+      "Check the page address and the page text."
+    ],
+    "test_data": "Variants: ' OR '1'='1 ; admin'-- ; \" OR \"\"=\" ; ') OR ('1'='1 ; 1 OR 1=1",
+    "expected": "The user stays on the sign-in page, the code (OTP) step does not open, and no text like 'SQL', 'syntax error' or 'exception' appears."
+  },
+  "AUTH-UI-023": {
+    "sub_module": "Sign-in page – script injection (XSS)",
+    "scenario": "Verify that script code typed in the sign-in fields is never run by the browser",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "User is on the sign-in page. Location access is allowed in the browser.",
+    "steps": [
+      "Open the sign-in page.",
+      "Type the script text in both Email and Password.",
+      "Click Sign in.",
+      "Watch for any pop-up alert box."
+    ],
+    "test_data": "Variants: <script>alert(1)</script> ; \"><img src=x onerror=alert(1)> ; <svg/onload=alert(1)>",
+    "expected": "No alert pop-up appears."
+  },
+  "AUTH-UI-030": {
+    "sub_module": "Sign-in page – location blocked",
+    "scenario": "Check that when location access is blocked a clear notice is shown and Sign in stays disabled",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Browser is opened with location permission NOT granted.",
+    "steps": [
+      "Open the sign-in page.",
+      "Wait for the location notice to appear.",
+      "Type an email and password.",
+      "Read the notice and check the Sign in button."
+    ],
+    "test_data": "Email: qa.user@example.com / Password: Secret@123",
+    "expected": "The notice 'Location access is required to sign in' is shown with a 'Try again' link, and the Sign in button is disabled."
+  },
+  "AUTH-UI-031": {
+    "sub_module": "Sign-in page – location allowed",
+    "scenario": "Check that when location access is allowed no notice is shown and Sign in becomes enabled",
+    "test_type": "Positive",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Location access is allowed in the browser.",
+    "steps": [
+      "Open the sign-in page.",
+      "Wait for the Sign in button to become enabled.",
+      "Check for a location notice."
+    ],
+    "test_data": "N/A",
+    "expected": "The Sign in button becomes enabled and no location notice is shown."
+  },
+  "AUTH-UI-040": {
+    "sub_module": "OTP step – screen content",
+    "scenario": "Verify that correct credentials open the 'Enter the code' step with a masked email and six code boxes",
+    "test_type": "Positive",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "A valid admin account exists. Location access is allowed in the browser.",
+    "steps": [
+      "Open the sign-in page.",
+      "Type the admin email and correct password.",
+      "Click Sign in.",
+      "Wait for the 'Enter the code' screen.",
+      "Read the text and count the code boxes."
+    ],
+    "test_data": "Email: admin account email / Password: admin password",
+    "expected": "The text 'We sent a 6-digit code to …' is shown, the email is partly hidden with dots (the full email is not shown), and there are 6 code boxes."
+  },
+  "AUTH-UI-041": {
+    "sub_module": "OTP step – Verify button",
+    "scenario": "Check that 'Verify and sign in' stays disabled until all six digits are entered",
+    "test_type": "Boundary",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "A valid admin account exists. User has entered correct credentials and is on the 'Enter the code' step.",
+    "steps": [
+      "Reach the 'Enter the code' step.",
+      "With 0 digits entered, check the Verify and sign in button.",
+      "Enter digits one box at a time (1, 2, 3, 4, 5), checking the button after each.",
+      "Enter the sixth digit (6) and check the button again."
+    ],
+    "test_data": "Digits 1 2 3 4 5 6 entered one by one",
+    "expected": "The button is disabled with 0 to 5 digits and becomes enabled once all 6 digits are entered."
+  },
+  "AUTH-UI-042": {
+    "sub_module": "OTP step – digits only",
+    "scenario": "Check that letters, symbols and spaces typed into the code boxes are ignored",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "A valid admin account exists. User is on the 'Enter the code' step.",
+    "steps": [
+      "Reach the 'Enter the code' step.",
+      "Click the first code box.",
+      "Type a letter, a symbol and a space.",
+      "Check the content of the box."
+    ],
+    "test_data": "Typed keys: 'a', '@', ' ' (space)",
+    "expected": "The first code box stays empty."
+  },
+  "AUTH-UI-043": {
+    "sub_module": "OTP step – paste code",
+    "scenario": "Verify that pasting a 6-digit code into the first box fills all six boxes",
+    "test_type": "Positive",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "A valid admin account exists. User is on the 'Enter the code' step.",
+    "steps": [
+      "Reach the 'Enter the code' step.",
+      "Paste the whole 6-digit code into the first box.",
+      "Read the six boxes from left to right."
+    ],
+    "test_data": "Code: 123456",
+    "expected": "The digits are spread across the boxes, reading 1 2 3 4 5 6."
+  },
+  "AUTH-UI-044": {
+    "sub_module": "OTP step – wrong code",
+    "scenario": "Check that a wrong code shows an error, clears the boxes and does not sign the user in",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "A valid admin account exists. User is on the 'Enter the code' step.",
+    "steps": [
+      "Reach the 'Enter the code' step.",
+      "Enter the code 000000.",
+      "Click Verify and sign in.",
+      "Read the message under the code boxes and check the boxes and page address."
+    ],
+    "test_data": "Code: 000000",
+    "expected": "An error message is shown under the code boxes, all boxes are cleared, and the user stays on the sign-in page."
+  },
+  "AUTH-UI-045": {
+    "sub_module": "OTP step – resend countdown",
+    "scenario": "Check that 'Send a new code' starts disabled with a seconds countdown",
+    "test_type": "Positive",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "A valid admin account exists. User is on the 'Enter the code' step.",
+    "steps": [
+      "Reach the 'Enter the code' step.",
+      "Read the label of the resend button.",
+      "Check whether the resend button can be clicked."
+    ],
+    "test_data": "N/A",
+    "expected": "The button reads 'Send a new code in Ns' (N = seconds left) and is disabled during the countdown."
+  },
+  "AUTH-UI-046": {
+    "sub_module": "OTP step – Use a different account",
+    "scenario": "Check that 'Use a different account' takes the user back to the sign-in form",
+    "test_type": "Positive",
+    "priority": "Low",
+    "severity": "Minor",
+    "preconditions": "A valid admin account exists. User is on the 'Enter the code' step.",
+    "steps": [
+      "Reach the 'Enter the code' step.",
+      "Click 'Use a different account'."
+    ],
+    "test_data": "N/A",
+    "expected": "The sign-in form with the Email field is shown again and the code step is gone."
+  },
+  "AUTH-UI-047": {
+    "sub_module": "OTP step – page refresh",
+    "scenario": "Check that refreshing the page on the code step returns to the sign-in form without a half-finished session",
+    "test_type": "Functional",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "A valid admin account exists. User is on the 'Enter the code' step.",
+    "steps": [
+      "Reach the 'Enter the code' step.",
+      "Refresh the browser page.",
+      "Wait for the sign-in form to appear.",
+      "Check whether the tab holds any session."
+    ],
+    "test_data": "N/A",
+    "expected": "The sign-in form is shown again and no session is stored in the tab."
+  },
+  "AUTH-UI-048": {
+    "sub_module": "OTP step – skip by URL",
+    "scenario": "Verify that after entering only the password, opening the Dashboard address directly still requires sign-in",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "A valid admin account exists. User has entered correct credentials and is on the 'Enter the code' step.",
+    "steps": [
+      "Reach the 'Enter the code' step.",
+      "Without entering the code, type the /dashboard address in the browser and open it."
+    ],
+    "test_data": "URL: /dashboard",
+    "expected": "The user is redirected to the sign-in page; the password alone does not give access."
+  },
+  "AUTH-UI-050": {
+    "sub_module": "Sign-in – successful sign-in",
+    "scenario": "Verify that email, password and code sign the user in to the dashboard with a tab-only session that expires within an hour",
+    "test_type": "Smoke",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "A valid admin account exists and its sign-in code can be read from email. Location access is allowed.",
+    "steps": [
+      "Open the sign-in page.",
+      "Type the admin email and password and click Sign in.",
+      "Enter the 6-digit code sent by email and click Verify and sign in.",
+      "Wait for the console to load and check the side menu.",
+      "Check where the session is stored and when it expires."
+    ],
+    "test_data": "Email: admin account email / Password: admin password / Code: from the sign-in email",
+    "expected": "The Dashboard menu is shown, the session token is kept only in this tab (not in long-term browser storage), and it expires within 60 minutes (about 30 minutes expected)."
+  },
+  "AUTH-UI-051": {
+    "sub_module": "Sign-in – return to requested page",
+    "scenario": "Check that a signed-out user who opens the Beneficiaries page is sent to sign-in and returned to Beneficiaries afterwards",
+    "test_type": "Functional",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "User is signed out. A valid admin account exists. Location access is allowed.",
+    "steps": [
+      "Type the /beneficiaries address in the browser and open it.",
+      "Check that the sign-in page opens and its address remembers the target page.",
+      "Sign in with email, password and the emailed code."
+    ],
+    "test_data": "URL: /beneficiaries / admin credentials",
+    "expected": "The sign-in address contains 'next=%2Fbeneficiaries' and after sign-in the user lands on the Beneficiaries page."
+  },
+  "AUTH-UI-052": {
+    "sub_module": "Sign-in – open redirect",
+    "scenario": "Verify that a return address pointing to another website is ignored after sign-in",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "User is signed out. A valid admin account exists. Location access is allowed.",
+    "steps": [
+      "Open the sign-in page with a 'next' return address pointing to an outside website.",
+      "Sign in with email, password and the emailed code.",
+      "Check which website the browser is on."
+    ],
+    "test_data": "Variants: next=//evil.example.com ; next=https://evil.example.com ; next=/\\evil.example.com",
+    "expected": "The browser stays on the escrow console website and is never sent to evil.example.com."
+  },
+  "AUTH-UI-060": {
+    "sub_module": "Session – protected pages",
+    "scenario": "Verify that every console page sends a signed-out visitor to the sign-in page",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "User is signed out.",
+    "steps": [
+      "Type the console page address in the browser and open it.",
+      "Check the page that opens."
+    ],
+    "test_data": "Variants: /dashboard ; /beneficiaries ; /transfers ; /audit-trail ; /users ; /change-password",
+    "expected": "The user is redirected to the sign-in page."
+  },
+  "AUTH-UI-061": {
+    "sub_module": "Session – new tab",
+    "scenario": "Verify that a new browser tab without the tab session is not signed in, even with saved cookies and local storage",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin has signed in once and the browser's saved cookies and local storage are available.",
+    "steps": [
+      "Open a new browser window that has only the saved cookies and local storage (no tab session).",
+      "Open the /dashboard address."
+    ],
+    "test_data": "URL: /dashboard",
+    "expected": "The user is redirected to the sign-in page."
+  },
+  "AUTH-UI-062": {
+    "sub_module": "Session – forged token",
+    "scenario": "Verify that a fake session token planted in the browser does not open the console",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "User is signed out. A fake session is placed in the browser tab before the page loads.",
+    "steps": [
+      "Place a fake session token (valid until 2099) in the browser tab storage.",
+      "Open the /beneficiaries address.",
+      "Check the page address and whether any list data is shown."
+    ],
+    "test_data": "Variants: random token 'abc.def.ghi'; unsigned token (algorithm 'none', user 'admin'); empty token",
+    "expected": "The user is sent to the sign-in page or no beneficiary data is shown."
+  },
+  "AUTH-UI-063": {
+    "sub_module": "Session – token storage",
+    "scenario": "Verify that the access token is kept only in the tab session and not in cookies or long-term browser storage",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin user is signed in.",
+    "steps": [
+      "Sign in as admin.",
+      "Read the access token from the tab session.",
+      "Check the browser cookies for the token.",
+      "Check the browser local storage for the token."
+    ],
+    "test_data": "N/A",
+    "expected": "A token is present in the tab session, and it does not appear in cookies or local storage."
+  },
+  "AUTH-UI-064": {
+    "sub_module": "Session – cookie security flags",
+    "scenario": "Verify that any session-like cookie is HttpOnly, Secure and SameSite",
+    "test_type": "Security",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin user is signed in.",
+    "steps": [
+      "Sign in as admin.",
+      "List the browser cookies whose names suggest a session (session, token, auth, jwt, sid).",
+      "Check the security flags of each such cookie."
+    ],
+    "test_data": "N/A",
+    "expected": "Each session-like cookie is HttpOnly, Secure and SameSite Lax or Strict. If there is no such cookie, the check is skipped (token is kept in the tab session instead)."
+  },
+  "AUTH-UI-070": {
+    "sub_module": "Forgot password – page layout",
+    "scenario": "Check that 'Forgot password?' opens the reset page with the email field, Send reset link and Back to sign in",
+    "test_type": "Positive",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "User is on the sign-in page.",
+    "steps": [
+      "Open the sign-in page.",
+      "Click 'Forgot password?'.",
+      "Check the content of the 'Forgot your password?' page."
+    ],
+    "test_data": "N/A",
+    "expected": "The page shows 'Enter the email linked to your account', a 'Send reset link' button and a 'Back to sign in' link."
+  },
+  "AUTH-UI-071": {
+    "sub_module": "Forgot password – email validation",
+    "scenario": "Check that the reset form checks the email before sending",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "User is on the Forgot password page.",
+    "steps": [
+      "Open the sign-in page and click 'Forgot password?'.",
+      "Type the email as per the data set.",
+      "Click Send reset link.",
+      "Read the message under Email."
+    ],
+    "test_data": "Variants: empty; 'abc' (no @); 'abc@' (no domain)",
+    "expected": "Empty shows 'Enter your email'; 'abc' and 'abc@' show 'That does not look like an email address'."
+  },
+  "AUTH-UI-072": {
+    "sub_module": "Forgot password – unknown email",
+    "scenario": "Verify that an unknown email gets the same neutral 'If an account exists for …' answer so accounts cannot be discovered",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "User is on the Forgot password page.",
+    "steps": [
+      "Open the sign-in page and click 'Forgot password?'.",
+      "Type an email that has no account.",
+      "Click Send reset link.",
+      "Wait for the 'Check your email' screen and read the message."
+    ],
+    "test_data": "Email: qa.nobody.7x@example.com",
+    "expected": "'Check your email' is shown with the text 'If an account exists for …', and no 'not found' message appears."
+  }
+}

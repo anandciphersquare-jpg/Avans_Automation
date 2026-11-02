@@ -1,0 +1,128 @@
+{
+  "WUM-001": {
+    "sub_module": "User Management – Roles list",
+    "scenario": "Verify that the Roles tab lists the base roles",
+    "test_type": "Positive",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Note: User Management is still under development, so a failure here is pending development, not a defect.",
+    "steps": [
+      "Open User Management.",
+      "Click the Roles tab and wait for it to load.",
+      "Look for the base role names on the page."
+    ],
+    "test_data": "Base roles: Admin, Customer, Business, Operations",
+    "expected": "At least one of the base roles (Admin, Customer, Business, Operations) is listed."
+  },
+  "WUM-002": {
+    "sub_module": "User Management – Create role",
+    "scenario": "Verify that an admin can create a new role and set its module access",
+    "test_type": "Positive",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. User Management is still under development.",
+    "steps": [
+      "Open User Management and click the Roles tab.",
+      "Click New role.",
+      "Enter a role name and description.",
+      "In the access table, set Beneficiary to View (if the table is available).",
+      "Click Save."
+    ],
+    "test_data": "Role name: 'QA_' + 5 random capital letters (e.g. QA_KXRTM); description: a short random sentence; Beneficiary access: View",
+    "expected": "A confirmation message appears or the new role is shown in the roles list."
+  },
+  "WUM-004": {
+    "sub_module": "User Management – Base roles protection",
+    "scenario": "Check that the Admin and Customer base roles cannot be deleted",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. The role row must exist (otherwise skipped). User Management is still under development.",
+    "steps": [
+      "Open User Management and click the Roles tab.",
+      "Find the row for the base role.",
+      "Look for a Delete button in that row."
+    ],
+    "test_data": "1) Admin  2) Customer",
+    "expected": "The role has no Delete button, or the Delete button is disabled."
+  },
+  "WUM-006": {
+    "sub_module": "User Management – Invite user form",
+    "scenario": "Verify that the Invite New User form shows the Email, Full Name and Contact Number fields",
+    "test_type": "UI/UX",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. User Management is still under development.",
+    "steps": [
+      "Open User Management and click the Users tab.",
+      "Click Add User.",
+      "Check the fields on the form."
+    ],
+    "test_data": "N/A",
+    "expected": "The form has Email, Full Name and Contact Number fields."
+  },
+  "WUM-007": {
+    "sub_module": "User Management – Invite user",
+    "scenario": "Verify that an admin can invite a new user with a role and hierarchy level",
+    "test_type": "Positive",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in. User Management is still under development.",
+    "steps": [
+      "Open User Management and click the Users tab.",
+      "Click Add User.",
+      "Enter Email, Full Name and Contact Number.",
+      "Choose the role Operations and the hierarchy level Maker (if available).",
+      "Click Send Invitation."
+    ],
+    "test_data": "Email: a generated test address starting 'qa.user'; Full Name: a random name; Contact: a random 10-digit mobile; Role: Operations; Hierarchy: Maker",
+    "expected": "A confirmation message appears or the invited user is shown in the users list."
+  },
+  "WUM-008": {
+    "sub_module": "User Management – Contact number validation",
+    "scenario": "Check that the invite is blocked when the contact number is not exactly 10 digits",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. User Management is still under development.",
+    "steps": [
+      "Open User Management, click the Users tab, then Add User.",
+      "Enter a valid Email and Full Name, and an invalid Contact Number.",
+      "Click Send Invitation.",
+      "Check whether the form is still open."
+    ],
+    "test_data": "1) 98765 (5 digits)  2) abcdwinvalid (letters)  3) 98765432101 (11 digits)",
+    "expected": "The invite is not sent; the form stays open with the Contact Number field shown."
+  },
+  "WUM-009": {
+    "sub_module": "User Management – Customer role",
+    "scenario": "Verify that choosing the Customer role shows the Assigned Virtual ID field",
+    "test_type": "Functional",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. User Management is still under development.",
+    "steps": [
+      "Open User Management, click the Users tab, then Add User.",
+      "Open the Role list and choose Customer.",
+      "Look for the Assigned Virtual ID field."
+    ],
+    "test_data": "Role: Customer",
+    "expected": "The Assigned Virtual ID field appears on the form."
+  },
+  "WUM-014": {
+    "sub_module": "User Management – Full Name security",
+    "scenario": "Check that script code typed into Full Name is not run by the browser",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in. User Management is still under development.",
+    "steps": [
+      "Open User Management, click the Users tab, then Add User.",
+      "Enter a valid Email and Contact Number, and the script text in Full Name.",
+      "Click Send Invitation.",
+      "Watch for any pop-up alert box."
+    ],
+    "test_data": "1) <script>alert(1)</script>  2) \"><img src=x onerror=alert(1)>",
+    "expected": "No pop-up alert appears; the script text is not executed."
+  }
+}

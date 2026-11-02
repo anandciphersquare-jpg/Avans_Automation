@@ -1,0 +1,62 @@
+{
+  "WAUD-001": {
+    "sub_module": "Audit Trail – page load",
+    "scenario": "Verify that the Audit Trail page opens",
+    "test_type": "Smoke",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in to the console.",
+    "steps": [
+      "Open the Audit Trail page.",
+      "Wait for the page to finish loading.",
+      "Look at the audit entries table."
+    ],
+    "test_data": "N/A",
+    "expected": "The Audit Trail page loads without error and the entries table (or an empty list) is shown."
+  },
+  "WAUD-002": {
+    "sub_module": "Audit Trail – entry details",
+    "scenario": "Verify that audit entries show the time and IP address of each action",
+    "test_type": "Functional",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. At least one audit entry exists (otherwise skipped).",
+    "steps": [
+      "Open the Audit Trail page and wait for it to load.",
+      "Read the entries in the table.",
+      "Look for a time or date value and for IP address information."
+    ],
+    "test_data": "N/A",
+    "expected": "Entries show a time or date (e.g. 10:45, '5 min ago' or a 202x date) and an IP address (e.g. 10.0.0.1) or an IP column."
+  },
+  "WAUD-004": {
+    "sub_module": "Audit Trail – sensitive data",
+    "scenario": "Verify that the audit entries contain no passwords, OTPs or full bank account numbers",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in.",
+    "steps": [
+      "Open the Audit Trail page and wait for it to load.",
+      "Read all text in the audit table.",
+      "Look for the words 'password' or 'OTP' and for long plain account numbers."
+    ],
+    "test_data": "N/A",
+    "expected": "The words 'password' and 'OTP' do not appear, and no plain 9 to 18 digit account number is shown."
+  },
+  "WAUD-005": {
+    "sub_module": "Audit Trail – access control",
+    "scenario": "Check that a limited-role user cannot open the Audit Trail by typing its web address",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "A limited-role (non-admin) user's credentials are set up (otherwise skipped).",
+    "steps": [
+      "Sign in as the limited-role user.",
+      "In the address bar, enter the console address followed by /audit-trail.",
+      "Wait about one second and check the page text and the final address."
+    ],
+    "test_data": "Path: /audit-trail; limited-role user account",
+    "expected": "The Audit Trail does not open: the page shows a message such as 'forbidden', 'no access', 'access denied', 'not found' or 'cannot open', or the user is redirected away."
+  }
+}

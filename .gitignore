@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.auth/
+.env
+reports/*.html
+mcp_server/.cache/
+reports/screenshots/
+reports/mcp_*
+# execution report output (reporting/)
+reports/runs/
+reports/latest/
+reports/history/

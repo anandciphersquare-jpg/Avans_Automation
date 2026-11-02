@@ -1,0 +1,78 @@
+{
+  "WTRN-002": {
+    "sub_module": "Transfers – list",
+    "scenario": "Verify that the Transfers list page opens",
+    "test_type": "Smoke",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in to the console.",
+    "steps": [
+      "Open the Transfers page.",
+      "Wait for the page to finish loading.",
+      "Look at the transfers table."
+    ],
+    "test_data": "N/A",
+    "expected": "The Transfers page loads without error and the transfers table (or an empty list) is shown."
+  },
+  "WTRN-004/005": {
+    "sub_module": "Transfers – Transfer Journey",
+    "scenario": "Verify that clicking a pending transfer opens its Transfer Journey showing its details and approval steps",
+    "test_type": "Positive",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. At least one transfer with status 'Pending for Authorization' exists (otherwise skipped).",
+    "steps": [
+      "Open the Transfers page and wait for it to load.",
+      "Click the first 'Pending for Authorization' status badge.",
+      "Read the Transfer Journey panel that opens."
+    ],
+    "test_data": "First transfer in 'Pending for Authorization' status",
+    "expected": "The Transfer Journey shows the transfer details and approval progress (Transfer ID, amount, Maker, Approver)."
+  },
+  "WTRN-011": {
+    "sub_module": "Transfers – approval rights",
+    "scenario": "Check that a user without approval rights does not see the Approve button",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "A limited-role (non-admin) user's credentials are set up (otherwise skipped). At least one pending transfer exists.",
+    "steps": [
+      "Sign in as the limited-role user.",
+      "Open the Transfers page and wait for it to load.",
+      "Click the first 'Pending for Authorization' status badge.",
+      "Look for an Approve button in the Transfer Journey."
+    ],
+    "test_data": "Limited-role (non-approver) user account",
+    "expected": "No visible, enabled Approve button is shown to this user."
+  },
+  "WTRN-009": {
+    "sub_module": "Transfers – maker/approver separation",
+    "scenario": "Check that the maker who created a transfer cannot approve the same transfer",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "A transfer created by the maker user must exist. Note: this test is currently skipped in automation because no such transfer is set up yet (Create Transfer is not live).",
+    "steps": [
+      "Sign in as the maker user who created the transfer.",
+      "Open the Transfers page and open that transfer's Transfer Journey.",
+      "Try to approve the transfer."
+    ],
+    "test_data": "A transfer created by the maker user",
+    "expected": "The maker cannot approve their own transfer (not yet automated; test is skipped)."
+  },
+  "WTRN-014": {
+    "sub_module": "Transfers – data masking",
+    "scenario": "Verify that no full bank account number is shown in the Transfer Journey",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. At least one pending transfer exists (otherwise skipped).",
+    "steps": [
+      "Open the Transfers page and wait for it to load.",
+      "Click the first 'Pending for Authorization' status badge.",
+      "Read all text in the Transfer Journey panel."
+    ],
+    "test_data": "First pending transfer",
+    "expected": "No plain number of 9 to 18 digits (a full account number) appears; account numbers are masked."
+  }
+}

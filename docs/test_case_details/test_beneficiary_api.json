@@ -1,0 +1,548 @@
+{
+  "API-BEN-001": {
+    "sub_module": "Beneficiary API – list",
+    "scenario": "Verify that the beneficiary list API returns a successful reply with paging details",
+    "test_type": "API",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in to the console and has a valid access token.",
+    "steps": [
+      "Send a GET request to /api/v1/beneficiaries with page 0 and size 25, using the admin token.",
+      "Check the response status and the 'success' flag.",
+      "Check that the data part contains the list of records, the page number, the page size and the total count."
+    ],
+    "test_data": "page: 0, size: 25",
+    "expected": "The API answers 200 with success = true; the data has the record list, page number 0, page size 25 and the total number of beneficiaries."
+  },
+  "API-BEN-002": {
+    "sub_module": "Beneficiary API – list item fields",
+    "scenario": "Verify that each beneficiary in the list carries the fields the screen needs, with valid status values",
+    "test_type": "API",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token. At least one beneficiary exists on UAT (otherwise the test is skipped).",
+    "steps": [
+      "Send a GET request to /api/v1/beneficiaries (page 0, size 25).",
+      "Take the first beneficiary in the list.",
+      "Check that it has: reference, code, name, status, registration status and created date.",
+      "Check the status and registration status values."
+    ],
+    "test_data": "Allowed status: PENDING, ACTIVE, INACTIVE, BLOCKED, REJECTED. Allowed registration status: NOT_REGISTERED, PENDING, SUCCESS, FAILED, REJECTED",
+    "expected": "All six fields are present and both status values are from the allowed lists."
+  },
+  "API-BEN-003": {
+    "sub_module": "Beneficiary API – detail",
+    "scenario": "Verify that opening a beneficiary by its reference returns the same beneficiary with its extra details",
+    "test_type": "API",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token. At least one beneficiary exists on UAT.",
+    "steps": [
+      "Get the list of beneficiaries and note the reference and code of the first one.",
+      "Send a GET request to /api/v1/beneficiaries/<reference>.",
+      "Compare the reference and code with the list values.",
+      "Check that the attempt count and last-updated date are present."
+    ],
+    "test_data": "Reference of the first beneficiary in the list",
+    "expected": "The API answers 200; the reference and code match the list, and the attempt count and updated date are shown."
+  },
+  "API-BEN-004": {
+    "sub_module": "Beneficiary API – search",
+    "scenario": "Verify that searching by beneficiary code returns that beneficiary",
+    "test_type": "API",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token. At least one beneficiary exists on UAT.",
+    "steps": [
+      "Get the list of beneficiaries and note the code of the first one.",
+      "Send a GET request to /api/v1/beneficiaries with search = that code.",
+      "Look for the code in the returned records."
+    ],
+    "test_data": "search: code of the first beneficiary in the list",
+    "expected": "The API answers 200 and the searched beneficiary is in the results."
+  },
+  "API-BEN-005": {
+    "sub_module": "Beneficiary API – issue code",
+    "scenario": "Verify that the system issues beneficiary codes in the correct format and never repeats one",
+    "test_type": "API",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Send a POST request to /api/v1/beneficiaries/code five times in a row.",
+      "Note the code returned each time.",
+      "Check each code's format and compare all five codes."
+    ],
+    "test_data": "5 requests. Valid code format: 1 to 50 letters, digits, '_' or '-'",
+    "expected": "Each request answers 200; all five codes are in the valid format and all five are different."
+  },
+  "API-BEN-006": {
+    "sub_module": "Beneficiary API – issue code",
+    "scenario": "Check that a newly issued beneficiary code is not already used by an existing beneficiary",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Send a POST request to /api/v1/beneficiaries/code and note the new code.",
+      "Search the beneficiary list for that code."
+    ],
+    "test_data": "A freshly issued code",
+    "expected": "No existing beneficiary has the newly issued code."
+  },
+  "API-BEN-007": {
+    "sub_module": "Beneficiary API – detail",
+    "scenario": "Check that asking for a beneficiary with an unknown reference returns 'not found'",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Send a GET request to /api/v1/beneficiaries/<unknown reference>.",
+      "Read the response status and error code."
+    ],
+    "test_data": "Reference: 00000000-0000-0000-0000-000000000000",
+    "expected": "The API answers 404 with error code NOT_FOUND."
+  },
+  "API-BEN-008": {
+    "sub_module": "Beneficiary API – detail",
+    "scenario": "Check that badly formed or harmful references are refused cleanly without a server error",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Send a GET request to /api/v1/beneficiaries/<reference> using each bad reference in turn.",
+      "Read the response status each time."
+    ],
+    "test_data": "1) 'abc'  2) '..%2F..%2Fetc%2Fpasswd' (path trick)  3) \"' OR 1=1--\" (SQL)  4) '1' repeated 300 times  5) '%00' (null character)",
+    "expected": "Each request gets a 4xx answer (request refused); none gives a 5xx server error."
+  },
+  "API-BEN-009": {
+    "sub_module": "Beneficiary API – check status / block",
+    "scenario": "Check that 'Check status' and 'Block/Unblock' on an unknown beneficiary return 'not found'",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Send a POST request to /api/v1/beneficiaries/<unknown reference>/enquiry with an empty body.",
+      "Send a PATCH request to /api/v1/beneficiaries/<unknown reference>/toggle-status with an empty body.",
+      "Read the response status of each."
+    ],
+    "test_data": "Reference: 00000000-0000-0000-0000-000000000000; actions: enquiry (check status), toggle-status (block/unblock)",
+    "expected": "Both requests answer 404."
+  },
+  "API-BEN-010": {
+    "sub_module": "Create Beneficiary API – mandatory fields",
+    "scenario": "Check that creating a beneficiary with an empty body is refused and all mandatory fields are named",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Send a POST request to /api/v1/beneficiaries with an empty body {}.",
+      "Read the response status, error code and the list of field errors."
+    ],
+    "test_data": "Body: {} (empty)",
+    "expected": "The API answers 400 or 422 with code VALIDATION_ERROR; the errors name all five mandatory fields (code, name, account number, IFSC, email) and do not list the optional mobile number. Nothing is created."
+  },
+  "API-BEN-011": {
+    "sub_module": "Create Beneficiary API – mandatory fields",
+    "scenario": "Check that creating a beneficiary without any one mandatory field is refused",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Get a fresh beneficiary code from POST /api/v1/beneficiaries/code.",
+      "Build a valid beneficiary body with that code, then remove one mandatory field.",
+      "Send it as a POST request to /api/v1/beneficiaries.",
+      "Read the response status and field errors.",
+      "Repeat for each mandatory field."
+    ],
+    "test_data": "Field removed (one at a time): beneficiary code, account number, email, IFSC, name. Other fields valid (name 'QA Auto ...', real IFSC, test email, 10-digit mobile)",
+    "expected": "Each request is refused with 400 or 422 and the missing field is named in the errors; no beneficiary is created."
+  },
+  "API-BEN-012": {
+    "sub_module": "Create Beneficiary API – mandatory fields",
+    "scenario": "Check that an empty, spaces-only or null value in any mandatory field is refused",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Get a fresh beneficiary code from POST /api/v1/beneficiaries/code.",
+      "Build a valid beneficiary body and set one mandatory field to a blank value.",
+      "Send it as a POST request to /api/v1/beneficiaries.",
+      "Read the response status and field errors.",
+      "Repeat for every mandatory field and every blank value."
+    ],
+    "test_data": "Fields: code, account number, email, IFSC, name. Blank values: '' (empty), '   ' (spaces only), null. 15 combinations",
+    "expected": "Each request is refused with 400 or 422 and the blank field is named in the errors; no beneficiary is created."
+  },
+  "API-BEN-013": {
+    "sub_module": "Create Beneficiary API – field rules",
+    "scenario": "Verify that the server itself (not only the screen) rejects invalid values for each beneficiary field",
+    "test_type": "Boundary",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Get a fresh beneficiary code from POST /api/v1/beneficiaries/code.",
+      "Build a valid beneficiary body and replace one field with an invalid value.",
+      "Send it as a POST request to /api/v1/beneficiaries.",
+      "Read the response status and field errors.",
+      "Repeat for every invalid value."
+    ],
+    "test_data": "Account: '12345678' (8 digits), 19 digits, '5010abc0123456' (letters), '5010-0123-4567' (dashes), '50100 1234567' (space), '-123456789' (negative). IFSC: 'HDFC000123' (10 chars), 'HDFC00012345' (12 chars), 'HDFC1001234' (5th char not 0), '1234567890A' (digits first), 'HDFC0-01234' (symbol). Email: 'abc', 'abc@x', 'a b@x.com', 'abc@@x.com'. Mobile: '98765', '98765432101', 'abcdefghij', '+919876543210'. Name: 300 'A's. Code: 'EX CODE 01' (spaces), 51 'X's, 'EX<001>' (symbols)",
+    "expected": "Every invalid value is refused with 400 or 422 and the bad field is named in the errors; no beneficiary is created and there is no server error."
+  },
+  "API-BEN-014": {
+    "sub_module": "Create Beneficiary API – data types",
+    "scenario": "Check that values of the wrong type (list, object, true/false) are refused cleanly without a server error",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Get a fresh beneficiary code and build a valid beneficiary body.",
+      "Replace one field with a value of the wrong type.",
+      "Send it as a POST request to /api/v1/beneficiaries and read the status.",
+      "Repeat for each variant."
+    ],
+    "test_data": "1) name as a list ['QA']  2) email as an object {\"a\": 1}  3) account number as true  4) IFSC as a list ['SBIN0000001']",
+    "expected": "Each request is refused with a 4xx status (not 200/201 and not 5xx); nothing is created."
+  },
+  "API-BEN-015": {
+    "sub_module": "Create Beneficiary API – malformed request",
+    "scenario": "Check that a broken (malformed) JSON body is refused with a client error, not a server error",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Send a POST request to /api/v1/beneficiaries with content type JSON and an incomplete JSON body.",
+      "Read the response status."
+    ],
+    "test_data": "Body: {\"beneName\": \"QA\",   (not closed)",
+    "expected": "The API answers with a 4xx status (e.g. 400), never a 5xx server error."
+  },
+  "API-BEN-020": {
+    "sub_module": "Create Beneficiary API – create and duplicate code",
+    "scenario": "Verify that a beneficiary with only mandatory fields is created with a masked account, a repeat of the same request returns the same beneficiary, and reusing its code for another payee is refused",
+    "test_type": "Positive",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin has a valid access token. Note: this test creates one 'QA Auto' beneficiary on UAT.",
+    "steps": [
+      "Get a fresh beneficiary code from POST /api/v1/beneficiaries/code.",
+      "Send POST /api/v1/beneficiaries with only the mandatory fields (code, name, account, IFSC, email) and no mobile.",
+      "Check the reply: same code, account number masked showing only the last 4 digits, and the full account number not present anywhere.",
+      "Open the beneficiary detail by its reference and check name, IFSC, email, empty mobile and masked account.",
+      "Send exactly the same create request again (as a retry after a timeout) and check the same beneficiary reference comes back.",
+      "Send a create request for a different payee using the same code.",
+      "Search the list by the code and count the matches."
+    ],
+    "test_data": "Fresh code; name 'QA Auto <first> <last>'; valid account number; real IFSC; test email; no mobile",
+    "expected": "First create answers 200/201 with the account masked. Detail matches what was sent, with no mobile and a masked account. The repeat returns the same beneficiary (nothing new). The different payee with the same code is refused (400/409/422) with code DUPLICATE_REFERENCE. Exactly one beneficiary carries the code."
+  },
+  "API-BEN-021": {
+    "sub_module": "Create Beneficiary API – duplicate code",
+    "scenario": "Check that an existing beneficiary's code cannot be used to register a new payee",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin has a valid access token. At least one beneficiary exists on UAT.",
+    "steps": [
+      "Get the list of beneficiaries; note the code of the first one and the total count.",
+      "Send POST /api/v1/beneficiaries for a new payee using that existing code.",
+      "Read the response status and error code.",
+      "Get the list again and compare the total count."
+    ],
+    "test_data": "Code: code of the first existing beneficiary; other fields: new valid payee details",
+    "expected": "The API refuses with 400, 409 or 422 and code DUPLICATE_REFERENCE; the total number of beneficiaries is unchanged."
+  },
+  "API-BEN-022": {
+    "sub_module": "Create Beneficiary API – duplicate code",
+    "scenario": "Check that a lower-case or space-padded copy of an existing code cannot create a look-alike payee",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token. At least one beneficiary exists on UAT (the lower-case variant is skipped if the code has no letters).",
+    "steps": [
+      "Get the code of the first existing beneficiary.",
+      "Make a variant of that code (lower case, or with spaces before and after).",
+      "Send POST /api/v1/beneficiaries for a new payee using the variant code.",
+      "Read the response status."
+    ],
+    "test_data": "1) existing code in lower case  2) existing code with two spaces before and after",
+    "expected": "Each request is refused with 400, 409 or 422 (as duplicate or invalid); no new beneficiary is created."
+  },
+  "API-BEN-023": {
+    "sub_module": "Create Beneficiary API – duplicate account",
+    "scenario": "Check that the same bank account and IFSC cannot be registered twice under different codes",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token. Note: this test creates one 'QA Auto' beneficiary on UAT.",
+    "steps": [
+      "Get a fresh code and register a valid beneficiary (first registration).",
+      "Get a second fresh code.",
+      "Send POST /api/v1/beneficiaries with the second code but the same account number and IFSC as the first.",
+      "Read the response status."
+    ],
+    "test_data": "Second request: new code, new name/email, same account number and IFSC as the first beneficiary",
+    "expected": "The first registration succeeds; the second is refused with 400, 409 or 422 (same payee twice)."
+  },
+  "API-BEN-030": {
+    "sub_module": "Beneficiary API – authentication",
+    "scenario": "Check that every beneficiary endpoint refuses a call made without a login token",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "None (requests are sent without any token).",
+    "steps": [
+      "Send each beneficiary request below without an Authorization header.",
+      "Read the response status and error code each time."
+    ],
+    "test_data": "1) GET /api/v1/beneficiaries (list)  2) GET /api/v1/beneficiaries/<unknown ref> (detail)  3) POST /api/v1/beneficiaries (create)  4) POST /api/v1/beneficiaries/code (issue code)  5) POST /api/v1/beneficiaries/<unknown ref>/enquiry  6) PATCH /api/v1/beneficiaries/<unknown ref>/toggle-status",
+    "expected": "Every request answers 401 with code UNAUTHORIZED."
+  },
+  "API-BEN-031": {
+    "sub_module": "Beneficiary API – authentication",
+    "scenario": "Check that fake, empty or wrong-type credentials are rejected",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "None.",
+    "steps": [
+      "Send GET /api/v1/beneficiaries with each bad Authorization header below.",
+      "Read the response status each time."
+    ],
+    "test_data": "1) 'Bearer abc.def.ghi' (made-up token)  2) 'Bearer ' (empty)  3) Basic username/password header  4) 'Bearer null'",
+    "expected": "Every request answers 401."
+  },
+  "API-BEN-032": {
+    "sub_module": "Beneficiary API – token tampering",
+    "scenario": "Check that a real login token with an altered signature is rejected",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in and a real access token is available.",
+    "steps": [
+      "Take the admin's real access token and change the last two characters of its signature part.",
+      "Send GET /api/v1/beneficiaries with the altered token.",
+      "Read the response status."
+    ],
+    "test_data": "Admin token with the last 2 signature characters changed",
+    "expected": "The API answers 401; the altered token is not accepted."
+  },
+  "API-BEN-033": {
+    "sub_module": "Beneficiary API – token tampering",
+    "scenario": "Check that an unsigned token (algorithm 'none') carrying the real user details is rejected",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in and a real access token is available.",
+    "steps": [
+      "Build a token with header {\"alg\":\"none\",\"typ\":\"JWT\"}, the real token's user details, and no signature.",
+      "Send GET /api/v1/beneficiaries with this token.",
+      "Read the response status."
+    ],
+    "test_data": "Unsigned token with the admin's real claims",
+    "expected": "The API answers 401; the unsigned token is not accepted."
+  },
+  "API-BEN-034": {
+    "sub_module": "Beneficiary API – data masking",
+    "scenario": "Verify that no full bank account number appears anywhere in the beneficiary list response",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Send GET /api/v1/beneficiaries with page 0 and size 100.",
+      "Check the account number of every record.",
+      "Search the whole response text for an account number with 5 or more plain digits."
+    ],
+    "test_data": "page: 0, size: 100",
+    "expected": "Every account number is masked (e.g. ****1234) and no raw account number appears in the response."
+  },
+  "API-BEN-035": {
+    "sub_module": "Beneficiary API – data masking",
+    "scenario": "Verify that the beneficiary detail response shows the account number masked",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin has a valid access token. At least one beneficiary exists on UAT.",
+    "steps": [
+      "Get the reference of the first beneficiary from the list.",
+      "Send GET /api/v1/beneficiaries/<reference>.",
+      "Check the account number in the reply."
+    ],
+    "test_data": "Reference of the first beneficiary",
+    "expected": "The account number is empty or masked, showing only the last few digits."
+  },
+  "API-BEN-036": {
+    "sub_module": "Beneficiary API – sensitive data",
+    "scenario": "Verify that the list and detail responses contain no password, OTP, PIN, CVV, secret or token fields",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin has a valid access token. At least one beneficiary exists on UAT.",
+    "steps": [
+      "Send GET /api/v1/beneficiaries.",
+      "Send GET /api/v1/beneficiaries/<reference of the first beneficiary>.",
+      "Search both responses for sensitive field names."
+    ],
+    "test_data": "Field names looked for: password, otp, pin, cvv, secret, token, authorization",
+    "expected": "None of the sensitive field names appears in either response."
+  },
+  "API-BEN-037": {
+    "sub_module": "Beneficiary API – search security",
+    "scenario": "Check that SQL injection text in the search box neither causes an error nor returns extra records",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Send GET /api/v1/beneficiaries with search set to each SQL text below (page 0, size 25).",
+      "Read the status, check for database error words, and check the total count."
+    ],
+    "test_data": "1) ' OR '1'='1  2) admin'--  3) \" OR \"\"=\"  4) ') OR ('1'='1  5) 1 OR 1=1",
+    "expected": "No 5xx error and no 'sql' or 'syntax' text in the reply; if the reply is 200, it returns zero records."
+  },
+  "API-BEN-038": {
+    "sub_module": "Create Beneficiary API – name security",
+    "scenario": "Check that a beneficiary name containing script code or SQL is refused",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token. A beneficiary is created only if the server wrongly accepts the name.",
+    "steps": [
+      "Get a fresh code and build a valid beneficiary body.",
+      "Set the name to the harmful text.",
+      "Send POST /api/v1/beneficiaries and read the status and field errors.",
+      "Repeat for the second value."
+    ],
+    "test_data": "1) <script>alert(1)</script>  2) Robert'); DROP TABLE beneficiaries;--",
+    "expected": "Each request is refused with 400 or 422 naming the name field, or 403 from the web firewall; nothing is created."
+  },
+  "API-BEN-039": {
+    "sub_module": "Create Beneficiary API – protected fields",
+    "scenario": "Check that a caller cannot set system-controlled fields (status, registration, reference, dates) when creating a beneficiary",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin has a valid access token. Note: this test may create one 'QA Auto' beneficiary on UAT.",
+    "steps": [
+      "Get a fresh code and build a valid beneficiary body.",
+      "Add extra fields that only the system should set (see test data).",
+      "Send POST /api/v1/beneficiaries.",
+      "If refused with 400/422, the test passes. If created, open the beneficiary detail.",
+      "Check the reference, bank reference, attempt count, created date and registration status."
+    ],
+    "test_data": "status: ACTIVE, registrationStatus: SUCCESS, beneficiaryReference: 00000000-0000-0000-0000-000000000000, bankReference: QA-FORGED, attemptCount: 99, createdAt: 2000-01-01",
+    "expected": "Either the request is refused (400/422), or the beneficiary is created but none of the sent system values were used: different reference, no 'QA-FORGED' bank reference, attempt count not 99, created date not in 2000, and it is not marked SUCCESS without a bank message."
+  },
+  "API-BEN-040": {
+    "sub_module": "Beneficiary API – unsupported methods",
+    "scenario": "Check that beneficiaries cannot be deleted or overwritten using other HTTP methods",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin has a valid access token. At least one beneficiary exists on UAT.",
+    "steps": [
+      "Get the reference of the first beneficiary.",
+      "Send each request below and read the status."
+    ],
+    "test_data": "1) DELETE /api/v1/beneficiaries/<ref>  2) PUT /api/v1/beneficiaries/<ref>  3) PUT /api/v1/beneficiaries  4) DELETE /api/v1/beneficiaries  5) TRACE /api/v1/beneficiaries",
+    "expected": "Each request answers 403, 404, 405 or 501; nothing is deleted or changed."
+  },
+  "API-BEN-041": {
+    "sub_module": "Beneficiary API – security headers",
+    "scenario": "Verify that the beneficiary API sends the required security headers and tells browsers not to cache the data",
+    "test_type": "Security",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Send GET /api/v1/beneficiaries.",
+      "Check the response headers."
+    ],
+    "test_data": "Headers checked: Strict-Transport-Security, X-Content-Type-Options = nosniff, X-Frame-Options or Content-Security-Policy, Referrer-Policy, Cache-Control",
+    "expected": "All the listed security headers are present and Cache-Control contains 'no-store'."
+  },
+  "API-BEN-042": {
+    "sub_module": "Beneficiary API – cross-site access (CORS)",
+    "scenario": "Check that the API does not allow requests from an unknown outside website",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Send GET /api/v1/beneficiaries with the Origin header set to an outside website.",
+      "Check the Access-Control-Allow-Origin response header."
+    ],
+    "test_data": "Origin: https://evil.example.com",
+    "expected": "Access-Control-Allow-Origin is neither '*' nor the outside website."
+  },
+  "API-BEN-043": {
+    "sub_module": "Beneficiary API – page size limit",
+    "scenario": "Check that a very large page size is capped or refused so all data cannot be pulled in one call",
+    "test_type": "Boundary",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Send GET /api/v1/beneficiaries with page 0 and a very large size.",
+      "Read the status and, if 200, the page size in the reply.",
+      "Repeat for the second size."
+    ],
+    "test_data": "size: 1000; size: 100000",
+    "expected": "No 5xx error; if the reply is 200, the page size used is 100 or less."
+  },
+  "API-BEN-044": {
+    "sub_module": "Beneficiary API – paging values",
+    "scenario": "Check that invalid page or size values are handled without a server error",
+    "test_type": "Negative",
+    "priority": "Low",
+    "severity": "Minor",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Send GET /api/v1/beneficiaries with each invalid paging value.",
+      "Read the response status."
+    ],
+    "test_data": "1) page = -1  2) size = 0  3) size = -5  4) page = 'abc'",
+    "expected": "Each request is refused (4xx) or corrected by the server; none gives a 5xx error."
+  },
+  "API-BEN-045": {
+    "sub_module": "Beneficiary API – issue code volume",
+    "scenario": "Verify that asking for many beneficiary codes quickly does not cause errors",
+    "test_type": "Security",
+    "priority": "Low",
+    "severity": "Minor",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Send POST /api/v1/beneficiaries/code 20 times quickly.",
+      "Read each response status."
+    ],
+    "test_data": "20 requests in a row",
+    "expected": "Every request answers 200, or 429 (too many requests) if a rate limit applies; no other status."
+  },
+  "API-BEN-046": {
+    "sub_module": "Beneficiary API – security headers",
+    "scenario": "Check that each security header is sent only once (not doubled)",
+    "test_type": "Security",
+    "priority": "Low",
+    "severity": "Minor",
+    "preconditions": "Admin has a valid access token.",
+    "steps": [
+      "Send GET /api/v1/beneficiaries.",
+      "Check that each security header has a single value (no comma-joined repeats such as 'DENY, DENY').",
+      "Check the Content-Security-Policy is not given twice."
+    ],
+    "test_data": "Headers: X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Strict-Transport-Security, Content-Security-Policy",
+    "expected": "Each header appears with one value only, and only one Content-Security-Policy is sent."
+  }
+}

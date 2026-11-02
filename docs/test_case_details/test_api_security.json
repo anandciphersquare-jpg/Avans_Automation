@@ -1,0 +1,173 @@
+{
+  "API-001": {
+    "sub_module": "API access control – authentication",
+    "scenario": "Verify that protected API endpoints refuse requests without a sign-in token",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. No sign-in token is needed. If the endpoint answers 404 (not available in this build) the check is skipped.",
+    "steps": [
+      "Send a GET request to /api/v1/dashboard/summary without any Authorization header.",
+      "Read the response status.",
+      "Repeat for each endpoint in the test data."
+    ],
+    "test_data": "Endpoints: /api/v1/dashboard/summary, /api/v1/beneficiaries, /api/v1/transfers, /api/v1/users, /api/v1/roles, /api/v1/audit-trail",
+    "expected": "Each endpoint answers 401 or 403."
+  },
+  "API-002": {
+    "sub_module": "API access control – authentication",
+    "scenario": "Verify that a valid admin token is accepted on a protected endpoint",
+    "test_type": "Positive",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session). If the endpoint answers 404 (not available in this build) the check is skipped.",
+    "steps": [
+      "Send a GET request to /api/v1/beneficiaries with Authorization: Bearer <valid admin token>.",
+      "Read the response status."
+    ],
+    "test_data": "Header: Authorization: Bearer <valid admin token>",
+    "expected": "The API answers 200 or 204."
+  },
+  "API-003": {
+    "sub_module": "API access control – token validation",
+    "scenario": "Verify that a tampered or garbage bearer token is refused",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. No sign-in token is needed. If the endpoint answers 404 (not available in this build) the check is skipped.",
+    "steps": [
+      "Send a GET request to /api/v1/beneficiaries with an Authorization header carrying an unsigned, made-up token.",
+      "Read the response status."
+    ],
+    "test_data": "Header: Authorization: Bearer <made-up unsigned token with alg \"none\" and subject \"admin\">",
+    "expected": "The API answers 401 or 403."
+  },
+  "WSEC-002": {
+    "sub_module": "API access control – modules not live",
+    "scenario": "Verify that API endpoints for modules that are not live are locked, even for an admin",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session).",
+    "steps": [
+      "Send a GET request to /api/v1/transfers/create with a valid admin token.",
+      "Read the response status.",
+      "Repeat for each endpoint in the test data."
+    ],
+    "test_data": "Endpoints: /api/v1/transfers/create, /api/v1/approvals, /api/v1/virtual-ids, /api/v1/master-escrow, /api/v1/deposits, /api/v1/qr-settlements",
+    "expected": "Each endpoint answers 403, 404, 405 or 501 - none of them is usable."
+  },
+  "API-005": {
+    "sub_module": "API access control – object access (IDOR)",
+    "scenario": "Verify that requesting a beneficiary by an ID outside the caller's scope is denied",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session).",
+    "steps": [
+      "Send a GET request to /api/v1/beneficiaries/00000000-0000-0000-0000-000000000000 with a valid admin token.",
+      "Read the response status."
+    ],
+    "test_data": "Beneficiary ID: 00000000-0000-0000-0000-000000000000",
+    "expected": "The API answers 403 or 404 - no beneficiary data is returned."
+  },
+  "API-006": {
+    "sub_module": "User Management API – mass assignment",
+    "scenario": "Verify that extra admin fields sent when creating a user are ignored",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session). Note: if the request is accepted, a new test user may be created in UAT. If the users endpoint answers 404 the check is skipped.",
+    "steps": [
+      "Send a POST request to /api/v1/users with a valid admin token and a new-user body that also includes isAdmin = true and is_admin = true.",
+      "Read the response status and body."
+    ],
+    "test_data": "Body: {\"email\": \"<random qa.user email>\", \"fullName\": \"<random name>\", \"contact\": \"<random 10-digit mobile>\", \"role\": \"Customer\", \"isAdmin\": true, \"is_admin\": true}",
+    "expected": "Either the request is refused (4xx), or, if accepted, the response does not show isAdmin = true - the extra fields are ignored."
+  },
+  "API-007": {
+    "sub_module": "Beneficiary API – SQL injection",
+    "scenario": "Verify that SQL injection text in the search parameter does not cause an error or leak database details",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session). If the endpoint answers 404 (not available in this build) the check is skipped.",
+    "steps": [
+      "Send a GET request to /api/v1/beneficiaries?search=<payload> with a valid admin token.",
+      "Read the response status and body.",
+      "Repeat for each payload in the test data."
+    ],
+    "test_data": "Search payloads: ' OR '1'='1 | admin'-- | \" OR \"\"=\" | ') OR ('1'='1 | 1 OR 1=1",
+    "expected": "Each request answers below 500 (no server error) and the body contains no \"sql\" or \"syntax\" error text."
+  },
+  "API-018": {
+    "sub_module": "User Management API – data exposure",
+    "scenario": "Verify that the users list response never contains password, OTP or secret fields",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session). If the users endpoint answers 404 the check is skipped.",
+    "steps": [
+      "Send a GET request to /api/v1/users with a valid admin token.",
+      "Search the response body for password, otp and secret fields."
+    ],
+    "test_data": "N/A",
+    "expected": "The response has no \"password\", \"otp\" or \"secret\" field."
+  },
+  "API-017": {
+    "sub_module": "Beneficiary API – data masking",
+    "scenario": "Verify that account numbers in the beneficiary list response are masked",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session). If the endpoint answers 404 or returns an empty body the check is skipped.",
+    "steps": [
+      "Send a GET request to /api/v1/beneficiaries with a valid admin token.",
+      "Look at every account-related field (field names containing \"acc\") in the response."
+    ],
+    "test_data": "N/A",
+    "expected": "No account field shows 5 or more raw digits in a row; account numbers are masked (for example **********7890). Mobile numbers are not part of this check."
+  },
+  "API-026": {
+    "sub_module": "API hardening – security headers",
+    "scenario": "Verify that API responses carry the recommended security headers",
+    "test_type": "Security",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session). If the dashboard endpoint answers 404 the check is skipped.",
+    "steps": [
+      "Send a GET request to /api/v1/dashboard/summary with a valid admin token.",
+      "Look at the response headers."
+    ],
+    "test_data": "N/A",
+    "expected": "The response has Strict-Transport-Security, X-Content-Type-Options: nosniff, X-Frame-Options or Content-Security-Policy, and Referrer-Policy."
+  },
+  "API-013": {
+    "sub_module": "API hardening – HTTP methods",
+    "scenario": "Check that an unexpected HTTP method (TRACE) is refused",
+    "test_type": "Security",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session).",
+    "steps": [
+      "Send a TRACE request to /api/v1/beneficiaries with a valid admin token.",
+      "Read the response status."
+    ],
+    "test_data": "Method: TRACE",
+    "expected": "The API answers 403, 404, 405 or 501."
+  },
+  "API-014": {
+    "sub_module": "API hardening – CORS",
+    "scenario": "Verify that the API does not allow any website (wildcard) together with credentials",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "The API is reachable. The admin account is set up and a valid sign-in token for the admin is available (taken from a signed-in browser session). If the dashboard endpoint answers 404 the check is skipped.",
+    "steps": [
+      "Send a GET request to /api/v1/dashboard/summary with a valid admin token and the header Origin: https://evil.example.com.",
+      "Read the Access-Control-Allow-Origin and Access-Control-Allow-Credentials response headers."
+    ],
+    "test_data": "Origin: https://evil.example.com",
+    "expected": "The response does not combine Access-Control-Allow-Origin: * with Access-Control-Allow-Credentials: true."
+  }
+}

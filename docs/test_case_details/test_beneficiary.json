@@ -1,0 +1,675 @@
+{
+  "BEN-UI-001": {
+    "sub_module": "Beneficiary List – Screen layout",
+    "scenario": "Check that the Beneficiary List screen shows its subtitle, search box, buttons, all eight columns and the 'Showing N beneficiaries' count.",
+    "test_type": "Smoke",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in.",
+    "steps": [
+      "Open Beneficiary List from the side menu.",
+      "Check the subtitle 'Payees registered with the bank' is shown.",
+      "Check the search box shows the hint 'Search by code or name…'.",
+      "Check the Reset Filters and Add Beneficiary buttons are visible.",
+      "Check the table has the columns Code, Name, Bank, Account, IFSC, Registration, Status, Added.",
+      "Compare the number of rows on page 1 with the 'Showing N beneficiaries' count."
+    ],
+    "test_data": "N/A",
+    "expected": "All controls and the eight columns are shown. Page 1 shows as many rows as the 'Showing N' count, up to 25 per page."
+  },
+  "BEN-UI-002": {
+    "sub_module": "Beneficiary List – Side menu",
+    "scenario": "Verify that the Beneficiary List menu entry opens the /beneficiaries page.",
+    "test_type": "UI/UX",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "Admin is signed in.",
+    "steps": [
+      "Open Beneficiary List from the side menu.",
+      "Check where the Beneficiary List menu link points.",
+      "Check the address in the browser bar."
+    ],
+    "test_data": "N/A",
+    "expected": "The menu link points to /beneficiaries and the browser address ends with /beneficiaries."
+  },
+  "BEN-UI-003": {
+    "sub_module": "Beneficiary List – Account masking",
+    "scenario": "Check that the Account column shows only the last four digits of every account number.",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in. At least one beneficiary exists (otherwise the test is skipped).",
+    "steps": [
+      "Open the Beneficiary List screen.",
+      "Look at the Account column for every row on the page.",
+      "Look through the whole table for any full account number (9 to 18 digits in a row)."
+    ],
+    "test_data": "N/A",
+    "expected": "Every account is masked (for example ****1234, or '—' when empty) and no full account number appears anywhere in the table."
+  },
+  "BEN-UI-004": {
+    "sub_module": "Beneficiary List – Registration column",
+    "scenario": "Check that every row shows a known Registration label.",
+    "test_type": "Positive",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "Admin is signed in. At least one beneficiary exists (otherwise the test is skipped).",
+    "steps": [
+      "Open the Beneficiary List screen.",
+      "Read the Registration value for every row on the page."
+    ],
+    "test_data": "Allowed labels: Registered, Sent to bank, Send failed, Refused by bank, Not sent",
+    "expected": "Every row shows one of the allowed Registration labels; no unknown values appear."
+  },
+  "BEN-UI-005": {
+    "sub_module": "Beneficiary List – Search",
+    "scenario": "Check that searching an exact beneficiary code lists that beneficiary.",
+    "test_type": "Positive",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. At least one beneficiary exists (otherwise the test is skipped).",
+    "steps": [
+      "Open the Beneficiary List screen.",
+      "Note the code of the first beneficiary in the list.",
+      "Type that code in the search box and press Enter."
+    ],
+    "test_data": "Code of the first beneficiary in the list (e.g. EX000056)",
+    "expected": "The searched beneficiary appears in the results."
+  },
+  "BEN-UI-006": {
+    "sub_module": "Beneficiary List – Search",
+    "scenario": "Check that searching part of a name lists only matching beneficiaries.",
+    "test_type": "Positive",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. At least one beneficiary exists (otherwise the test is skipped).",
+    "steps": [
+      "Open the Beneficiary List screen.",
+      "Take the first 4 letters of the first word of the first beneficiary's name.",
+      "Type those letters in the search box and press Enter.",
+      "Check the names (and codes) in the results."
+    ],
+    "test_data": "First 4 letters of an existing name (e.g. 'QA A' from 'QA Auto ...')",
+    "expected": "At least one row is shown, and the results contain the search text in the name (or in the code)."
+  },
+  "BEN-UI-007": {
+    "sub_module": "Beneficiary List – Search and Reset Filters",
+    "scenario": "Check that a search with no match shows an empty list and Reset Filters brings the full list back.",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "Admin is signed in.",
+    "steps": [
+      "Open the Beneficiary List screen and note the 'Showing N beneficiaries' count.",
+      "Type a text that matches no beneficiary in the search box and press Enter.",
+      "Check the count.",
+      "Click Reset Filters.",
+      "Check the search box and the count again."
+    ],
+    "test_data": "Search text: QA-NO-SUCH-PAYEE-9X9",
+    "expected": "The search shows 'Showing 0 beneficiaries'. After Reset Filters the search box is empty and the count returns to the original total."
+  },
+  "BEN-UI-008": {
+    "sub_module": "Beneficiary List – Search security",
+    "scenario": "Check that SQL or script text typed into the search box does not cause an error, run any script or return unrelated rows.",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in.",
+    "steps": [
+      "Open the Beneficiary List screen.",
+      "Type the attack text into the search box and press Enter.",
+      "Watch for any pop-up (alert) box.",
+      "Check the page for words like 'SQL', 'syntax error', 'exception' or 'stack trace'.",
+      "Check the rows returned."
+    ],
+    "test_data": "Run once for each: ' OR '1'='1 | admin'-- | \" OR \"\"=\" | ') OR ('1'='1 | 1 OR 1=1 | <script>alert(1)</script> | \"><img src=x onerror=alert(1)> | <svg/onload=alert(1)>",
+    "expected": "No pop-up appears, no server error text is shown, and only rows whose name or code really contain the text are listed (normally none)."
+  },
+  "BEN-UI-009": {
+    "sub_module": "Beneficiary details panel – Sections",
+    "scenario": "Check that clicking a beneficiary code opens the details panel with all its fields and the Check status button.",
+    "test_type": "Positive",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. At least one beneficiary exists (otherwise the test is skipped).",
+    "steps": [
+      "Open the Beneficiary List screen.",
+      "Click the code of the first beneficiary.",
+      "Check the fields shown in the details panel (Payee and 'With the bank' sections).",
+      "Check the Beneficiary code value and the Check status button."
+    ],
+    "test_data": "Code of the first beneficiary in the list",
+    "expected": "The panel shows Beneficiary code, Name, Account, IFSC, Status with us, Added and Registration. The code matches the clicked code, the panel is described as 'Beneficiary code <code>', and the Check status button is visible."
+  },
+  "BEN-UI-010": {
+    "sub_module": "Beneficiary details panel – Account masking",
+    "scenario": "Check that the details panel shows the account number masked (last 4 digits only).",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in. At least one beneficiary exists (otherwise the test is skipped).",
+    "steps": [
+      "Open the Beneficiary List screen.",
+      "Click the code of the first beneficiary.",
+      "Look at the Account value in the details panel."
+    ],
+    "test_data": "N/A",
+    "expected": "The Account value is masked, showing only the last four digits (for example ****1234)."
+  },
+  "BEN-UI-011": {
+    "sub_module": "Beneficiary details panel – Block / Unblock button",
+    "scenario": "Check that the Block or Unblock button is offered only when the beneficiary's status is ACTIVE or BLOCKED.",
+    "test_type": "Functional",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. At least one beneficiary exists (otherwise the test is skipped).",
+    "steps": [
+      "Open the Beneficiary List screen.",
+      "For each of the first 4 beneficiaries, note the Status and click the code.",
+      "Check whether a Block or Unblock button is shown in the details panel.",
+      "Close the panel and move to the next beneficiary."
+    ],
+    "test_data": "First 4 beneficiaries in the list (any status)",
+    "expected": "Block/Unblock is shown for ACTIVE or BLOCKED beneficiaries and is not shown for any other status."
+  },
+  "BEN-UI-012": {
+    "sub_module": "Beneficiary details panel – Block confirmation",
+    "scenario": "Check that cancelling the 'Block this beneficiary?' confirmation leaves the beneficiary unchanged.",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. At least one ACTIVE beneficiary exists (otherwise the test is skipped).",
+    "steps": [
+      "Open the Beneficiary List screen.",
+      "Click the code of an ACTIVE beneficiary.",
+      "Click Block.",
+      "In the 'Block this beneficiary?' box, click Cancel.",
+      "Check the buttons in the details panel."
+    ],
+    "test_data": "First ACTIVE beneficiary in the list",
+    "expected": "The beneficiary is not blocked; the Block button is still shown."
+  },
+  "BEN-UI-013": {
+    "sub_module": "Beneficiary details panel – Block and Unblock",
+    "scenario": "Verify that a beneficiary can be blocked (with confirmation) and then unblocked back to ACTIVE.",
+    "test_type": "Functional",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in. At least one ACTIVE beneficiary exists (otherwise the test is skipped). This changes real shared data briefly; the original ACTIVE state is always restored.",
+    "steps": [
+      "Open the Beneficiary List screen.",
+      "Click the code of an ACTIVE beneficiary.",
+      "Click Block, then click 'Block beneficiary' in the confirmation box.",
+      "Check the Unblock button appears and 'Status with us' shows BLOCKED.",
+      "Click Unblock.",
+      "Check the Block button appears again and 'Status with us' shows ACTIVE."
+    ],
+    "test_data": "First ACTIVE beneficiary in the list",
+    "expected": "After Block, status is BLOCKED and Unblock is offered. After Unblock, status is back to ACTIVE and Block is offered."
+  },
+  "BEN-UI-014": {
+    "sub_module": "Beneficiary details panel – Check status",
+    "scenario": "Verify that Check status on an ACTIVE beneficiary asks the bank and updates the 'Last checked' time.",
+    "test_type": "Functional",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. At least one ACTIVE beneficiary exists (otherwise the test is skipped). A real status enquiry is sent to the bank.",
+    "steps": [
+      "Open the Beneficiary List screen.",
+      "Click the code of an ACTIVE beneficiary.",
+      "Click Check status.",
+      "Wait for the bank's answer.",
+      "Look for the 'Last checked ...' line in the panel."
+    ],
+    "test_data": "First ACTIVE beneficiary in the list",
+    "expected": "The bank enquiry completes without a server error (no 5xx) and a 'Last checked ...' line is shown in the details panel."
+  },
+  "BEN-UI-015": {
+    "sub_module": "Beneficiary details panel – Close",
+    "scenario": "Check that the details panel closes with the X (Close) button and with the Escape key.",
+    "test_type": "UI/UX",
+    "priority": "Low",
+    "severity": "Minor",
+    "preconditions": "Admin is signed in. At least one beneficiary exists (otherwise the test is skipped).",
+    "steps": [
+      "Open the Beneficiary List screen.",
+      "Click the code of the first beneficiary to open the details panel.",
+      "Close the panel using the method for this run (X button or Escape key)."
+    ],
+    "test_data": "Run 1: Close (X) button | Run 2: Escape key",
+    "expected": "The details panel closes in both cases."
+  },
+  "BEN-UI-016": {
+    "sub_module": "Beneficiary details panel – Check status error",
+    "scenario": "Check that when the bank cannot answer a status check, the user sees a clear error message.",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. At least one beneficiary exists (otherwise the test is skipped). The bank status-check reply is simulated as a failure (HTTP 502, UPSTREAM_ERROR), so the real bank is not called.",
+    "steps": [
+      "Open the Beneficiary List screen.",
+      "Click the code of the first beneficiary.",
+      "Click Check status.",
+      "Wait up to 8 seconds for a message on screen."
+    ],
+    "test_data": "Simulated bank reply: HTTP 502, message 'QA: the bank did not answer', code UPSTREAM_ERROR",
+    "expected": "The message 'QA: the bank did not answer' is shown to the user instead of nothing happening."
+  },
+  "BEN-UI-020": {
+    "sub_module": "Add Beneficiary form – Layout",
+    "scenario": "Check that the Add beneficiary form shows all seven fields with their labels, plus Cancel and Register with bank buttons.",
+    "test_type": "Smoke",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Check each field and its label is visible.",
+      "Check the Cancel button is visible.",
+      "Check the Register with bank button is enabled."
+    ],
+    "test_data": "Fields: Beneficiary code, Beneficiary name, Account number, Confirm account number, IFSC, Mobile number, Email address",
+    "expected": "All seven fields are shown with the correct labels; Cancel is visible and Register with bank is enabled."
+  },
+  "BEN-UI-021": {
+    "sub_module": "Add Beneficiary form – Mandatory / optional markers",
+    "scenario": "Check that only Mobile number is marked optional and the Email address hint says 'Required.'",
+    "test_type": "UI/UX",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Read the label of each field.",
+      "Read the hint text under Email address."
+    ],
+    "test_data": "Mandatory: Beneficiary name, Account number, Confirm account number, IFSC, Email address. Optional: Mobile number",
+    "expected": "Mobile number is labelled '(optional)'; no mandatory field is labelled optional; the form shows 'Required.' for Email."
+  },
+  "BEN-UI-022": {
+    "sub_module": "Add Beneficiary form – Beneficiary code",
+    "scenario": "Check that the beneficiary code is issued by the system in the right format and cannot be edited.",
+    "test_type": "Functional",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Wait for the Beneficiary code field to be filled automatically.",
+      "Check the code format.",
+      "Click into the Beneficiary code field and type 'X9'.",
+      "Check the code value again."
+    ],
+    "test_data": "Typed text: X9",
+    "expected": "A code is filled in automatically (letters, digits, '-' or '_', up to 50 characters). The field is read-only and typing does not change the code."
+  },
+  "BEN-UI-023": {
+    "sub_module": "Add Beneficiary form – Beneficiary code",
+    "scenario": "Check that a different beneficiary code is issued every time the form is opened.",
+    "test_type": "Functional",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open.",
+    "steps": [
+      "Click Add Beneficiary and note the code.",
+      "Click Cancel.",
+      "Repeat two more times (three openings in total).",
+      "Compare the three codes."
+    ],
+    "test_data": "N/A",
+    "expected": "All three codes are different; no code is reused."
+  },
+  "BEN-UI-024": {
+    "sub_module": "Add Beneficiary form – Beneficiary code",
+    "scenario": "Check that a newly issued code does not already belong to an existing beneficiary.",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open.",
+    "steps": [
+      "Click Add Beneficiary and note the issued code.",
+      "Click Cancel.",
+      "Search the list for that code."
+    ],
+    "test_data": "The code just issued by the form",
+    "expected": "The search shows 'Showing 0 beneficiaries' – the code is not used by any existing beneficiary."
+  },
+  "BEN-UI-025": {
+    "sub_module": "Add Beneficiary form – Closing the form",
+    "scenario": "Check that closing a filled form with Cancel, X or Escape does not register anything.",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Fill all fields with valid data.",
+      "Close the form using the method for this run (Cancel, X button or Escape key).",
+      "Check that no registration request was sent."
+    ],
+    "test_data": "Valid 'QA Auto' beneficiary data. Run 1: Cancel | Run 2: Close (X) | Run 3: Escape key",
+    "expected": "The form closes and no create request is sent in any of the three cases."
+  },
+  "BEN-UI-030": {
+    "sub_module": "Add Beneficiary form – Empty form",
+    "scenario": "Check that submitting the empty form is refused with the beneficiary name message.",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Leave all fields empty.",
+      "Click Register with bank."
+    ],
+    "test_data": "All fields empty",
+    "expected": "The message 'The beneficiary name is required.' is shown, the form stays open and nothing is sent."
+  },
+  "BEN-UI-031": {
+    "sub_module": "Add Beneficiary form – Mandatory fields",
+    "scenario": "Check that leaving any one mandatory field empty blocks registration with the right message.",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Fill all fields with valid data except the field for this run.",
+      "Leave that field empty.",
+      "Click Register with bank."
+    ],
+    "test_data": "Run once per empty field: Beneficiary name | Account number | Confirm account number | IFSC | Email address",
+    "expected": "The matching message is shown ('The beneficiary name is required.' / 'The account number must be 9 to 18 digits.' / 'The two account numbers do not match.' / 'The IFSC must be 11 characters: four letters, a zero, then six letters or digits.' / 'A valid email address is required') and nothing is sent."
+  },
+  "BEN-UI-032": {
+    "sub_module": "Add Beneficiary form – Mandatory fields",
+    "scenario": "Check that a mandatory field filled with spaces only is treated as empty.",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Fill all fields with valid data.",
+      "Replace the field for this run with spaces only.",
+      "Click Register with bank."
+    ],
+    "test_data": "Beneficiary name: 5 spaces | Email address: 3 spaces | IFSC: 3 spaces",
+    "expected": "The field's required/format message is shown (name, email or IFSC message) and nothing is sent."
+  },
+  "BEN-UI-033": {
+    "sub_module": "Add Beneficiary form – Mobile number",
+    "scenario": "Verify that the form can be submitted with Mobile number left blank.",
+    "test_type": "Positive",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Fill all mandatory fields with valid data.",
+      "Leave Mobile number empty.",
+      "Click Register with bank."
+    ],
+    "test_data": "Valid 'QA Auto' data, Mobile number blank",
+    "expected": "The form closes, one registration request is sent, and it does not include a mobile number."
+  },
+  "BEN-UI-034": {
+    "sub_module": "Add Beneficiary form – Submitted data",
+    "scenario": "Verify that every field is sent to the system exactly as entered.",
+    "test_type": "Functional",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary and note the issued code.",
+      "Fill all fields with valid data.",
+      "Click Register with bank.",
+      "Check the data that was sent."
+    ],
+    "test_data": "Name 'QA Auto <first> <last>', 14-digit account (same in confirm), IFSC e.g. SBIN0000001 / HDFC0000001 / ICIC0000001, 10-digit mobile starting with 9, test email",
+    "expected": "The form closes and exactly one request is sent containing the issued code, name, account number, IFSC, mobile and email exactly as typed."
+  },
+  "BEN-UI-035": {
+    "sub_module": "Add Beneficiary form – Mobile number",
+    "scenario": "Check that a mobile number, when entered, must be exactly 10 digits.",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Fill all fields with valid data.",
+      "Enter the invalid mobile number for this run.",
+      "Click Register with bank."
+    ],
+    "test_data": "98765 (5 digits) | 987654321 (9 digits) | 98765432101 (11 digits) | abcdefghij (letters) | +919876543210 (with country code)",
+    "expected": "The message 'The mobile number must be 10 digits.' is shown and nothing is sent."
+  },
+  "BEN-UI-036": {
+    "sub_module": "Add Beneficiary form – Email address",
+    "scenario": "Check that badly formed email addresses are refused.",
+    "test_type": "Negative",
+    "priority": "Medium",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Fill all fields with valid data.",
+      "Enter the invalid email for this run.",
+      "Click Register with bank."
+    ],
+    "test_data": "abc | abc@ | abc@x | a b@x.com | @x.com | abc@@x.com",
+    "expected": "The message 'A valid email address is required' is shown and nothing is sent."
+  },
+  "BEN-UI-040": {
+    "sub_module": "Add Beneficiary form – Account number",
+    "scenario": "Check that account numbers of exactly 9 and 18 digits (the limits) are accepted.",
+    "test_type": "Boundary",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Fill all fields with valid data.",
+      "Enter an account number of the length for this run in both Account number and Confirm account number.",
+      "Click Register with bank."
+    ],
+    "test_data": "Run 1: 9-digit account (e.g. 512345678) | Run 2: 18-digit account (e.g. 512345678901234567)",
+    "expected": "The form closes and the account number is sent exactly as entered."
+  },
+  "BEN-UI-041": {
+    "sub_module": "Add Beneficiary form – Account number",
+    "scenario": "Check that an account number shorter than 9 digits, longer than 18 digits, or without digits is refused.",
+    "test_type": "Boundary",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Fill all fields with valid data.",
+      "Enter the account number for this run in both Account number and Confirm account number.",
+      "Click Register with bank."
+    ],
+    "test_data": "12345678 (8 digits) | 1234567890123456789 (19 digits) | 1 (1 digit) | abcdefghijk (letters only)",
+    "expected": "The message 'The account number must be 9 to 18 digits.' is shown and nothing is sent."
+  },
+  "BEN-UI-042": {
+    "sub_module": "Add Beneficiary form – Account number",
+    "scenario": "Check that an account number containing letters, symbols or dashes is refused and not silently cleaned.",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Fill all fields with valid data.",
+      "Enter the account number for this run in both Account number and Confirm account number.",
+      "Click Register with bank."
+    ],
+    "test_data": "5010abc0123456 (letters inside) | 50100123456789@ (symbol) | 5010-0123-4567 (dashes)",
+    "expected": "The message 'The account number must be 9 to 18 digits.' is shown and nothing is sent (the form must not strip the extra characters and send a different number)."
+  },
+  "BEN-UI-043": {
+    "sub_module": "Add Beneficiary form – Confirm account number",
+    "scenario": "Check that any difference between Account number and Confirm account number is refused.",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Fill all fields with valid data.",
+      "Change Confirm account number as described for this run.",
+      "Click Register with bank."
+    ],
+    "test_data": "Last digit changed | First digit changed | One digit short | One extra digit | Last two digits swapped",
+    "expected": "The message 'The two account numbers do not match.' is shown and nothing is sent."
+  },
+  "BEN-UI-044": {
+    "sub_module": "Add Beneficiary form – Confirm account number",
+    "scenario": "Verify that matching Account number and Confirm account number are accepted.",
+    "test_type": "Positive",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Fill all fields with valid data, typing the same account number in both account fields.",
+      "Click Register with bank."
+    ],
+    "test_data": "Same 14-digit account number in both fields",
+    "expected": "The form closes and one registration request is sent."
+  },
+  "BEN-UI-045": {
+    "sub_module": "Add Beneficiary form – Confirm account number",
+    "scenario": "Check that pasting into Confirm account number is blocked so the number must be retyped.",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Major",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Copy an account number to the clipboard.",
+      "Click into Confirm account number and press Ctrl+V.",
+      "Check the field value and its hint text."
+    ],
+    "test_data": "Pasted value: 50100123456789",
+    "expected": "The field stays empty after paste, and its hint text contains 'do not paste'."
+  },
+  "BEN-UI-046": {
+    "sub_module": "Add Beneficiary form – Account number fields",
+    "scenario": "Check that both account number fields switch off browser auto-fill and use a numeric keypad.",
+    "test_type": "Security",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Inspect the Account number field settings.",
+      "Inspect the Confirm account number field settings."
+    ],
+    "test_data": "N/A",
+    "expected": "Both fields have browser auto-complete turned off and open a numeric keypad on mobile devices."
+  },
+  "BEN-UI-050": {
+    "sub_module": "Add Beneficiary form – IFSC",
+    "scenario": "Check that an IFSC not in the format 4 letters + '0' + 6 letters/digits (11 characters) is refused.",
+    "test_type": "Boundary",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Fill all fields with valid data.",
+      "Enter the invalid IFSC for this run.",
+      "Click Register with bank."
+    ],
+    "test_data": "HDFC000123 (10 chars) | HDFC00012345 (12 chars) | HDFCX001234 (5th char not 0) | HDFC1001234 (5th char 1) | HDF0001234 (3 letters) | 1234567890A (starts with digits) | HDFC0-01234 (dash) | HDFC 001234 (space)",
+    "expected": "The message 'The IFSC must be 11 characters: four letters, a zero, then six letters or digits.' is shown and nothing is sent."
+  },
+  "BEN-UI-051": {
+    "sub_module": "Add Beneficiary form – IFSC",
+    "scenario": "Verify that an IFSC typed in lower case is shown and sent in upper case.",
+    "test_type": "Positive",
+    "priority": "Medium",
+    "severity": "Minor",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Fill all fields with valid data, typing the IFSC in lower case.",
+      "Check the IFSC field shows upper case.",
+      "Click Register with bank."
+    ],
+    "test_data": "IFSC typed as e.g. sbin0000001",
+    "expected": "The field shows SBIN0000001, the form closes and the IFSC is sent in upper case."
+  },
+  "BEN-UI-060": {
+    "sub_module": "Add Beneficiary form – Register end to end",
+    "scenario": "Verify that a fully valid beneficiary is registered, appears in the list with a masked account, and shows correct details.",
+    "test_type": "Functional",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. This creates one real 'QA Auto' beneficiary on UAT and sends it to the bank.",
+    "steps": [
+      "Click Add Beneficiary and note the issued code.",
+      "Fill all fields with valid data.",
+      "Click Register with bank and wait for the reply.",
+      "Search the list for the code.",
+      "Check the Account and Registration columns of the new row.",
+      "Click the code and check Name, IFSC, Email, Mobile and Account in the details panel."
+    ],
+    "test_data": "Name 'QA Auto <first> <last>', 14-digit account, IFSC SBIN0000001 / HDFC0000001 / ICIC0000001, 10-digit mobile, test email",
+    "expected": "Registration succeeds (HTTP 200/201) and the form closes. The new beneficiary is listed with the account masked to the last 4 digits and a known Registration label. The details show the entered name, IFSC, email and mobile, the account is masked, and the full account number appears nowhere on the page."
+  },
+  "BEN-UI-061": {
+    "sub_module": "Add Beneficiary form – Duplicate code",
+    "scenario": "Check that registering with a code that already exists is refused and the form issues a fresh code.",
+    "test_type": "Negative",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in. At least one beneficiary exists (otherwise the test is skipped). The real create request is sent, but its code is swapped for an existing beneficiary's code.",
+    "steps": [
+      "Open the Beneficiary List screen; note the first beneficiary's code and the total count.",
+      "Click Add Beneficiary and note the issued code.",
+      "Fill all fields with valid data.",
+      "Click Register with bank (the request carries the existing code).",
+      "Read the message in the form and check the code field.",
+      "Click Cancel, reload the list and check the total count."
+    ],
+    "test_data": "Code of the first existing beneficiary; valid 'QA Auto' data",
+    "expected": "The system refuses (HTTP 400/409/422, code DUPLICATE_REFERENCE). The form shows 'That beneficiary code is already in use, so a new one has been issued.' and a new code different from both the old and existing ones is filled in. The list total is unchanged."
+  },
+  "BEN-UI-070": {
+    "sub_module": "Add Beneficiary form – Name security",
+    "scenario": "Check that script text typed into Beneficiary name is never run in the browser.",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Fill all fields with valid data, entering the script text as the Beneficiary name.",
+      "Click Register with bank.",
+      "Watch for any pop-up (alert) box."
+    ],
+    "test_data": "<script>alert(1)</script> | \"><img src=x onerror=alert(1)> | <svg/onload=alert(1)>",
+    "expected": "No pop-up appears. If the form sends the request, the name is sent as plain text exactly as typed."
+  },
+  "BEN-UI-071": {
+    "sub_module": "Add Beneficiary form – Data storage",
+    "scenario": "Check that the typed account number is not saved in the browser's local or session storage.",
+    "test_type": "Security",
+    "priority": "High",
+    "severity": "Critical",
+    "preconditions": "Admin is signed in. Beneficiary List screen is open. The create request is intercepted so no real beneficiary is registered.",
+    "steps": [
+      "Click Add Beneficiary.",
+      "Fill all fields with valid data.",
+      "Click Register with bank and wait for the form to close.",
+      "Inspect the browser's local storage and session storage."
+    ],
+    "test_data": "Valid 'QA Auto' data with a 14-digit account number",
+    "expected": "The full account number is not found in local storage or session storage."
+  }
+}
